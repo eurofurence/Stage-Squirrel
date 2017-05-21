@@ -1,0 +1,289 @@
+var config = require('../config/config.js');
+
+// mySQL Integration
+var connection;
+var mysql = require('mysql');
+function handleDisconnect() {
+  connection = mysql.createConnection(config.database); // Recreate the connection, since
+                                                  // the old one cannot be reused.
+
+  connection.connect(function(err) {              // The server is either down
+    if(err) {                                     // or restarting (takes a while sometimes).
+      console.log('error when connecting to db:', err);
+      setTimeout(handleDisconnect, 2000); 		// We introduce a delay before attempting to reconnect,
+    }                                     		// to avoid a hot loop, and to allow our node script to
+  });                                     		// process asynchronous requests in the meantime.
+                                          		// If you're also serving http, display a 503 error.
+  connection.on('error', function(err) {
+    console.log('db error', err);
+    if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+      handleDisconnect();                         // lost due to either server restart, or a
+    } else {                                      // connnection idle timeout (the wait_timeout
+      throw err;                                  // server variable configures this)
+    }
+  });
+}
+handleDisconnect();
+
+// Telegram Bot Options
+var bot  = require('node-telegram-bot-api');
+try {
+	var locale = require('../config/locale_' + config.locale);
+} catch (ex) {
+	var locale = require('../config/locale_en');
+}
+var api_token = "";
+var base_url = config.baseurl;
+var feedbackid = config.telegramfeedbackid;
+var telegram = null;
+connection.query("SELECT configuration_value FROM sq_configuration WHERE configuration_key = 'TELEGRAM_API_TOKEN'", function (err, result) {
+	api_token = result[0].configuration_value;
+	startBot();
+});
+refreshDBs();
+
+//DBs for fast access
+var userdb = [];
+var roledb = [];
+
+function refreshDBs() {
+	connection.query('SELECT * from sq_user where user_active = 1', function (err, userrows) {
+		connection.query('SELECT * from sq_role where role_is_active = 1', function (err, rolerows) {
+			connection.query('SELECT * from sq_map_user_to_role', function (err, mapuserrolerows) {
+					userdb = [];
+					roledb = [];
+					eventdb = [];
+					for (role of rolerows) {
+					  roledb[role.role_id] = role;
+					}
+					for (one_user of userrows) {
+					  userdb[one_user.user_id] = one_user;
+					  userdb[one_user.user_id].roles = [];
+					  for (mappings of mapuserrolerows) {
+						  if (mappings.user_id == one_user.user_id) {
+							  var role = roledb[mappings.role_id];
+							  role.notification = mappings.notification;
+							  role.notification_creator_only = mappings.notification_creator_only;
+							  if (role.role_is_admin == 1) { userdb[one_user.user_id].isAdmin = 1; }
+							  if (role.role_is_manager == 1) { userdb[one_user.user_id].isManager = 1; }
+							  if (role.role_is_creator == 1) { userdb[one_user.user_id].isCreator = 1; }
+							  userdb[one_user.user_id].roles.push(role);
+						  }
+					  }
+				  	}
+			});
+		});
+	});
+}
+
+// Handle Times
+function getTimeSQLtoJS(timeString) {
+	// Split timestamp into [ Y, M, D, h, m, s ]
+	var t = timeString.split(/[- :]/);
+
+	// Apply each element to the Date function
+	var d = new Date(Date.UTC(t[0], t[1]-1, t[2], t[3], t[4], t[5]));
+
+	return d;
+}
+
+function getTimeJStoSQL(timeString) {
+	// Your default date object  
+	var starttime = new Date();
+	// Get the iso time (GMT 0 == UTC 0)
+	var isotime = new Date((new Date(timeString)).toISOString() );
+	// getTime() is the unix time value, in milliseconds.
+	// getTimezoneOffset() is UTC time and local time in minutes.
+	// 60000 = 60*1000 converts getTimezoneOffset() from minutes to milliseconds. 
+	var fixedtime = new Date(isotime.getTime()-(starttime.getTimezoneOffset()*60000));
+	// toISOString() is always 24 characters long: YYYY-MM-DDTHH:mm:ss.sssZ.
+	// .slice(0, 19) removes the last 5 chars, ".sssZ",which is (UTC offset).
+	// .replace('T', ' ') removes the pad between the date and time.
+	var formatedMysqlString = fixedtime.toISOString().slice(0, 19).replace('T', ' ');
+	return formatedMysqlString;
+}
+
+// generate uniqueCode
+function generateCode(codeLength) {
+	var allowed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	var code = "";
+	for (var i = 0; i < codeLength; i++) {
+		code += allowed[parseInt(Math.random() * allowed.length)];
+	}
+	return code;
+}
+
+function startBot() {
+	if (api_token == "") {
+		console.log("No Telegram API Key provided. Bot is disabled.")
+	} else {
+	telegram = new bot(
+		api_token,
+		 {polling: true}
+	);
+
+// handle incoming messages
+telegram.on('message', (message) => {
+  console.log(message);
+  if (message.text.substring(0,6) === "/start") {
+	connection.query('select * from sq_user where user_telegram_id = ?', message.chat.id, function (err, rows) {
+		if (rows.length == 0) {
+			telegram.sendMessage(message.chat.id, locale.telegram_start);
+		} else {
+			if (rows[0].user_telegram_linked == '0') {
+				telegram.sendMessage(message.chat.id, locale.telegram_start_activate);
+			} else {
+				if (rows[0].user_telegram_active == '0') {
+					connection.query('UPDATE sq_user SET user_telegram_active = 1 WHERE user_telegram_id = ?', message.chat.id, function (err, rows) {
+						telegram.sendMessage(message.chat.id, locale.telegram_start_reactivate);
+					});
+				} else {
+					telegram.sendMessage(message.chat.id, 'The StageSquirrel-Bot is already activated.');
+				}
+			}
+		}
+	  
+	});
+  }
+  
+  else if (message.text.substring(0,5) === "/stop") {
+	connection.query('select * from sq_user where user_telegram_id = ?', message.chat.id, function (err, rows) {
+		if (rows.length == 0) {
+			telegram.sendMessage(message.chat.id, 'You can not stop that bot when your account is not linked, because we do not know you.');
+		} else {
+			if (rows[0].user_telegram_linked == '0') {
+				telegram.sendMessage(message.chat.id, 'You need to successfully link Telegram and the Stagesquirrel Bot first.');
+			} else {
+				if (rows[0].user_telegram_active == '1') {
+					connection.query('UPDATE sq_user SET user_telegram_active = 0 WHERE user_telegram_id = ?', message.chat.id, function (err, rows) {
+						telegram.sendMessage(message.chat.id, 'You deactivated the StageSquirrel-Bot.');
+					});
+				} else {
+					telegram.sendMessage(message.chat.id, 'The StageSquirrel-Bot is already deactivated.');
+				}
+			}
+		}
+	  
+	});
+  }
+  
+  else if (message.text.substring(0,5) === "/link") {
+	if (message.text.length < 7) {
+		telegram.sendMessage(message.chat.id, 'You need to specify a username with /link username.');
+	} else {
+		if (message.text.substring(5,6) != " ") {  
+			telegram.sendMessage(message.chat.id, 'There must be a space between /link and your username.');
+		} else {
+			connection.query('select * from sq_user where user_telegram_id = ?', message.chat.id, function (err, rows) {
+				if (rows.length == 0 || rows[0].user_telegram_linked == '0') {
+					var now = new Date();
+					var validThru = new Date(now.getTime() + (60000 * 10));
+					var varifyCode = generateCode(6);
+					connection.query('UPDATE sq_user SET user_telegram_id = ?, user_telegram_confirmation_key = ?, user_telegram_confirmation_valid_to = ? WHERE user_name = ?', [message.chat.id, varifyCode, getTimeJStoSQL(validThru), message.text.substring(6)], function (err, rows) {
+						telegram.sendMessage(message.chat.id, 'The username ' + message.text.substring(6) + ' can now link Telegram and StageSquirrel by using the following code on the StageSquirrel Profile Settings: ' + varifyCode + ' (This code will only be valid till ' + validThru.toLocaleTimeString() + ')');
+					});
+				} else {
+					telegram.sendMessage(message.chat.id, 'Telegram and the StageSquirrel-Bot are already linked.');
+				}
+	  
+			});
+		}
+	}
+  }
+  
+  else if (message.text.substring(0,7) === "/unlink") {
+	connection.query('select * from sq_user where user_telegram_id = ?', message.chat.id, function (err, rows) {
+		if (rows.length == 0 || rows[0].user_telegram_linked == '0') {
+			telegram.sendMessage(message.chat.id, 'Telegram and the StageSquirrel-Bot are not linked.');
+		} else {
+			connection.query('UPDATE sq_user SET user_telegram_id = null, user_telegram_linked = 0 WHERE user_telegram_id = ?', message.chat.id, function (err, rows) {
+				telegram.sendMessage(message.chat.id, 'You successfully unlinked Telegram and the StageSquirrel-Bot.');
+			});
+		}
+	});
+  }
+  
+  else if (message.text.substring(0,9) === "/feedback" && message.text.length > 10 && feedbackid != '') {
+	connection.query('select * from sq_user where user_telegram_id = ?', message.chat.id, function (err, rows) {
+		if (rows.length > 0 && rows[0].user_telegram_linked == '1') {
+			telegram.sendMessage(feedbackid, 'You got a feedback message: ' + message.text.substring(10));
+			telegram.sendMessage(message.chat.id, 'Thanks for your feedback.');
+		} 
+	});
+  }
+});
+}}
+
+// notifications
+module.exports = {
+	notifyById: function(id, content) {
+		telegram.sendMessage(id, content);
+	},
+	notify: function(typeId, eventId, versionId, senderId, roleId) {
+		refreshDBs();
+		console.log(typeId + " / " + eventId + " / " + versionId + " / " + senderId + " / " + roleId);
+		connection.query('SELECT * FROM sq_user WHERE user_telegram_id IS NOT null AND user_telegram_linked = 1 AND user_telegram_active = 1 AND user_active = 1', function (err, userrows) {
+			// 1 Event Manager creates Event / inform Stage Managers
+			if (typeId == 1) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = ?', [eventId, versionId], function (err, eventrows) {
+					for (one_user of userrows) {
+						if (userdb[one_user.user_id].isManager) {
+							telegram.sendMessage(one_user.user_telegram_id, "User *" + userdb[senderId].user_name + "* created the new event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nPlease change or confirm the Stage Survey under [this link](http://www." + base_url + "/create?id=" + eventId + ").", { parse_mode: "markdown" });
+						}
+					}
+				});
+			}
+			
+			// 2 Event Manager changes Event / inform Stage Managers of new version
+			else if (typeId == 2) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = ?', [eventId, versionId], function (err, eventrows) {
+					for (one_user of userrows) {
+						if (userdb[one_user.user_id].isManager) {
+							telegram.sendMessage(one_user.user_telegram_id, "User *" + userdb[senderId].user_name + "* made changes to the event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nPlease confirm the new version " + versionId + " of the Stage Survey under [this link](http://www." + base_url + "/create?id=" + eventId + ").", { parse_mode: "markdown" });
+						}
+					}
+				});
+			}
+			
+			// 3 Stage Manager changes Event / inform Event Manager of new version
+			else if (typeId == 3) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = ?', [eventId, versionId], function (err, eventrows) {
+					telegram.sendMessage(userdb[eventrows[0].creator_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* made changes to your event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nPlease confirm the new version " + versionId + " of the Stage Survey under [this link](http://www." + base_url + "/create?id=" + eventId + ").", { parse_mode: "markdown" });
+				});
+			}
+				
+			// 4 EventMgr accepted Event / inform Stage Manager
+			else if (typeId == 4) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = ?', [eventId, versionId], function (err, eventrows) {
+					for (one_user of userrows) {
+						if (userdb[one_user.user_id].isManager) {
+							telegram.sendMessage(one_user.user_telegram_id, "User *" + userdb[senderId].user_name + "* confirmed version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Survey under [this link](http://www." + base_url + "/create?id=" + eventId + ").", { parse_mode: "markdown" });
+						}
+					}
+				});
+			}
+			
+			// 5 StageMgr accepted Event / inform Event Manager
+			else if (typeId == 5) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = ?', [eventId, versionId], function (err, eventrows) {
+					telegram.sendMessage(userdb[eventrows[0].creator_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* confirmed version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Survey under [this link](http://www." + base_url + "/create?id=" + eventId + ").", { parse_mode: "markdown" });
+				});
+			}
+			
+			
+				// 6 Stage Manager creates Rider / inform Responsible / inform Event Manager with time
+				// 7 Responsible confirms Rider / inform all
+				// 8 Stage Manager confirmy Rider / inform all
+				// 9 Responsible change Rider / inform Stage Manager
+				// 10 Stage Manager change Role of Rider / inform role
+				// 11 Stage Manager change General Roder / inform all
+				// 12 anybody writes commentary / inform roles
+				// 13 User registers and waits for confirmation / inform admin
+				// 14 IP Ban / inform admin
+		});
+	},
+	readToken: function(newToken) {
+		api_token = newToken;
+		startBot();
+	}
+}

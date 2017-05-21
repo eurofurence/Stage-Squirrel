@@ -1,0 +1,251 @@
+<!-- views/profile.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Stage Squirrel - Admin Configuration</title>
+    <% include ./partials/head %>
+	<script>
+	var form;
+	var mainform;
+	var endvar;
+	
+	function addpanel(id) {
+		if (mainform == undefined) { mainform = document.getElementById('mainform'); }
+		document.getElementById(id).remove();
+		
+		var panel = document.createElement("div");
+		panel.setAttribute('class',"panel panel-default");
+		panel.setAttribute('id',"panel_" + id);
+		
+		
+		
+		var head = document.createElement("div");
+		head.setAttribute('class',"panel-heading");
+			var headgroup = document.createElement("div");
+			headgroup.setAttribute('class',"form-group");
+				var headlabel = document.createElement("div");
+				headlabel.setAttribute('class',"col-sm-8");
+					var label = document.createElement("input");
+					label.setAttribute('class',"form-control");
+					label.setAttribute('placeholder',"Title");
+				var headroles = document.createElement("div");
+				headroles.setAttribute('class',"col-sm-3");
+					var roles = document.createElement("select");
+					roles.setAttribute('class',"form-control");
+						var role = document.createElement("option");
+						role.text = "Choose Role";
+						roles.appendChild(role);
+						var role = document.createElement("option");
+						role.text = "General";
+						roles.appendChild(role);
+						<% for (role of roles) { %>
+							var role = document.createElement("option");
+							role.text = "<%=role.role_title %>";
+							roles.appendChild(role);
+						<% } %>
+				var headdelete = document.createElement("div");
+				headdelete.setAttribute('class',"col-sm-1");
+					var delpanel = document.createElement("input");
+					delpanel.setAttribute('class',"btn btn-danger");
+					delpanel.setAttribute('type',"button");
+					delpanel.setAttribute('value',"x");
+					delpanel.setAttribute('onClick',"delpanel(" + id + ")");
+		
+		
+		var body = document.createElement("div");
+		body.setAttribute('class',"panel-body");
+		body.setAttribute('id',"body_" + id);
+			var descriptiongroup = document.createElement("div");
+			descriptiongroup.setAttribute('class',"form-group");	
+				var description = document.createElement("input");
+				description.setAttribute('class',"form-control");
+				description.setAttribute('placeholder',"Description");
+			var addelement = document.createElement("input");
+			addelement.setAttribute('class',"btn btn-primary");
+			addelement.setAttribute('type',"button");
+			addelement.setAttribute('value',"add Element");
+			addelement.setAttribute('id',"add_btn_" + id);
+			addelement.setAttribute('onClick',"addelement(" + id + ")");
+
+		headlabel.appendChild(label);
+			headgroup.appendChild(headlabel);
+		headroles.appendChild(roles);
+			headgroup.appendChild(headroles);
+		headdelete.appendChild(delpanel);
+			headgroup.appendChild(headdelete);
+				head.appendChild(headgroup);
+					panel.appendChild(head);
+				body.appendChild(descriptiongroup);
+					descriptiongroup.appendChild(description);
+				body.appendChild(addelement);
+					panel.appendChild(body);
+						mainform.appendChild(panel);
+		
+		var newelement = document.createElement("input");
+		newelement.setAttribute('class',"btn btn-primary");
+		newelement.setAttribute('type',"button");
+		newelement.setAttribute('value',"add Panel");
+		id++;
+		newelement.setAttribute('id', id);
+		newelement.setAttribute('onClick',"addpanel(this.id)");
+		mainform.appendChild(newelement);
+	}
+	
+	function delpanel(id) {
+		document.getElementById("panel_" + id).remove();
+	}
+	
+	function addelement(id) {
+		var body = document.getElementById("body_" + id);
+		document.getElementById("add_btn_" + id).remove();
+		
+
+		var controlgroup = document.createElement("div");
+		controlgroup.setAttribute('class',"form-group element");
+		controlgroup.setAttribute('id',"element");
+			var controllabel = document.createElement("div");
+			controllabel.setAttribute('class',"col-sm-3");
+				var controls = document.createElement("select");
+				controls.setAttribute('onChange',"choosecontrol(this)");
+				controls.setAttribute('class',"form-control");
+				controls.setAttribute('id',"test");
+					var control = document.createElement("option");
+					control.text = "Textbox";
+					controls.appendChild(control);
+					var control = document.createElement("option");
+					control.text = "Dropdown";
+					controls.appendChild(control);
+					var control = document.createElement("option");
+					control.text = "Control2";
+					controls.appendChild(control);
+				controllabel.appendChild(controls);
+			controlgroup.appendChild(controllabel);
+		body.appendChild(controlgroup);
+		choosecontrol(controls);
+
+		var addelement = document.createElement("input");
+		addelement.setAttribute('class',"btn btn-primary");
+		addelement.setAttribute('type',"button");
+		addelement.setAttribute('value',"add Element");
+		addelement.setAttribute('id',"add_btn_" + id);
+		addelement.setAttribute('onClick',"addelement(" + id + ")");
+		body.appendChild(addelement);
+	}
+	
+	function delelement(id) {
+		id.parentElement.parentElement.remove();
+	}
+	
+	function choosecontrol(control) {
+		group = control.parentElement.parentElement;
+		for (var i = group.children.length; i > 1; i--) {
+			group.children[1].remove();
+		}
+		
+		if (control.value == "Textbox") {
+			var labelgroup = document.createElement("div");
+			labelgroup.setAttribute('class',"col-sm-8");
+				var label = document.createElement("input");
+				label.setAttribute('class',"form-control");
+				label.setAttribute('placeholder',"Label");	
+				labelgroup.appendChild(label);
+			var deletegroup = document.createElement("div");
+			deletegroup.setAttribute('class',"col-sm-1");
+				var delelement = document.createElement("input");
+				delelement.setAttribute('class',"btn btn-danger");
+				delelement.setAttribute('type',"button");
+				delelement.setAttribute('value',"x");
+				delelement.setAttribute('onClick',"delelement(this)");
+				deletegroup.appendChild(delelement);
+			group.appendChild(labelgroup);
+			group.appendChild(deletegroup);
+		} else
+		if (control.value == "Dropdown") {
+			var labelgroup = document.createElement("div");
+			labelgroup.setAttribute('class',"col-sm-8");
+				var label = document.createElement("input");
+				label.setAttribute('class',"form-control");
+				label.setAttribute('placeholder',"Label");	
+			var deletegroup = document.createElement("div");
+			deletegroup.setAttribute('class',"col-sm-1");
+				var delelement = document.createElement("input");
+				delelement.setAttribute('class',"btn btn-danger");
+				delelement.setAttribute('type',"button");
+				delelement.setAttribute('value',"x");
+				delelement.setAttribute('onClick',"delelement(this)");
+				deletegroup.appendChild(delelement);
+			var optionsgroup = document.createElement("div");
+			optionsgroup.setAttribute('class',"col-sm-12");
+				var options = document.createElement("input");
+				options.setAttribute('class',"form-control");
+				options.setAttribute('placeholder',"Comma separated options");	
+				labelgroup.appendChild(label);
+				optionsgroup.appendChild(options);
+			group.appendChild(labelgroup);
+			group.appendChild(deletegroup);
+			group.appendChild(optionsgroup);
+		}
+	}
+	
+	function tryToSolve() {
+		var custId = 0;
+		
+		form = document.getElementById('mainform');
+		endvar = new Object();
+		endvar.title = 'Mainform';
+		endvar.ID = ++custId;
+		endvar.parentID = 0;
+		endvar.panels = [];
+		for (var object of form.children) {
+			var parentID = endvar.ID;
+			if (object.className.includes('panel')) {
+				var panel = new Object();
+				panel.ID = ++custId;
+				panel.parentID = parentID;
+				endvar.panels.push(panel);
+				panel.elements = [];
+				for (var element of object.children[1].children) {
+					var parent2ID = panel.ID;
+					if (element.className.includes('element')) {
+						var formelement = new Object();
+						formelement.ID = ++custId;
+						formelement.parentID = parent2ID;
+						panel.elements.push(formelement);
+					}
+				}
+			}
+		}
+		//Array.from(element.parentNode.children).indexOf(element)
+	}
+	</script>
+</head>
+<body>
+
+    <% include ./partials/nav %>	
+
+<div class="container">
+
+    <div class="page-header text-center">
+        <h1>Edit Stage Survey</h1>
+    </div>
+
+    <div class="row">
+		<div class="col-sm-10">
+	        <row>
+	          <div class="col-lg-12">
+	            <form class="form-horizontal" id="mainform">
+
+                  <input type="button" class="btn btn-primary" id="0" onClick="addpanel(this.id);" value="Add panel"></input>
+				  
+				  <br><br><br>
+	          </form>
+				  
+				  <input type="button" class="btn btn-primary" onClick="tryToSolve();" value="Solve riddle">
+	        </row>
+		</div>
+
+    </div>
+
+</div>
+</body>
+</html>

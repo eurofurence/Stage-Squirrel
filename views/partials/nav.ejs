@@ -1,0 +1,52 @@
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+	    <% console.log(nav) %>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+      <a class="navbar-brand" href="#">Stage Squirrel</a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li <%= nav == 'home' ? 'class=active' : '' %>><a href="home"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+		<% if (user.isManager == 1) { %>
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Managing <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li <%= nav == 'convention' ? 'class=active' : '' %>><a href="convention">Conventions</a></li>
+            <li <%= nav == 'stages' ? 'class=active' : '' %>><a href="stages">Stages</a></li>
+            <li <%= nav == 'templates' ? 'class=active' : '' %>><a href="templates">Templates</a></li>
+          </ul>
+        </li>
+	  	<% } %>
+		<% if (user.isManager == 1) { %>
+			<li <%= nav == 'manage' ? 'class=active' : '' %>><a href="manage">Manage Events</a></li>
+        <% } %>
+		<% if (user.isCreator == 1) { %>
+			<li <%= nav == 'create' ? 'class=active' : '' %>><a href="create">Create Survey</a></li>
+			<li <%= nav == 'surveys' ? 'class=active' : '' %>><a href="surveys">My Surveys</a></li>
+        <% } %>
+		<% for (var role of user.user_roles) { 
+			console.log(role);
+			if (role.role_is_admin == 0 && role.role_is_manager == 0 && role.role_is_creator == 0) {
+				var glyphicon = '';
+				if (role.role_glyphicon != undefined) {
+					glyphicon = new String('<span class=\"glyphicon glyphicon-' + role.role_glyphicon + '\"></span> ');
+				} %>
+        	<li <%= nav == 'role_' + role.role_title.toLowerCase() ? 'class=active' : '' %>><a href="roleview?role=<%= role.role_title.toLowerCase() %>"><%- glyphicon %><%= role.role_title %></a></li>
+			<% } %>
+		<% } %>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+		<li><a><%= user.currentConvention.convention_name %></a></li>
+		<% if (user.isAdmin == 1) { %>
+		<li <%= nav == 'admin' ? 'class=active' : '' %>><a href="admin"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
+        <% } %>
+		<li <%= nav == 'profile' ? 'class=active' : '' %>><a href="profile"><span class="glyphicon glyphicon-user"></span> <%= user.user_name %></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>

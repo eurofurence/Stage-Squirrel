@@ -1,0 +1,207 @@
+<html>
+<head>
+    <title>Stage Squirrel - Admin Configuration</title>
+    <% include ./partials/head %>
+    <style>
+	    .chosen-container {
+		    width: 100% !important;
+	    }
+	</style>
+	<script>
+	$(document).on("click", ".open-myModal", function () {
+		if ($(this).data('action') == "edit") {
+		     $(".modal-header #cid").val($(this).data('cid'));
+		     $(".modal-body #cname").val($(this).data('cname'));
+		     $(".modal-body #cdesc").val($(this).data('cdesc'));
+		     $(".modal-body #ctemp").val($(this).data('ctemp'));
+			var stageArray = $(this).data('cstage').split(',');
+			for (var stage of $(".modal-body input[name=convention_stage]")) {
+			  stage.checked = false;
+			  for (var chosenStage of stageArray) {
+			    if (stage.value == chosenStage) {
+			      stage.checked = true;
+			    }
+			  }
+			}
+			
+		     $(".modal-body #cfrom").datepicker('update', $(this).data('cfrom'));
+		     $(".modal-body #cto").datepicker('update', $(this).data('cto'));
+		     $(".modal-footer #deletebtn")[0].style.display = 'inline-block';
+		     $(".modal-footer #createbtn").text("Edit");
+		     $(".modal-header #createtxt")[0].innerHTML = "Edit Convention";
+		} else if ($(this).data('action') == "create") {
+		     $(".modal-header #cid").val("0");
+		     $(".modal-body #cname").val("");
+		     $(".modal-body #cdesc").val("");
+		     $(".modal-body #ctemp").val("");
+			for (var stage of $(".modal-body input[name=convention_stage]")) {
+			    stage.checked = false;
+			}
+		     $(".modal-body #cfrom").datepicker('update', '');
+		     $(".modal-body #cto").datepicker('update', '');
+		     $(".modal-footer #deletebtn")[0].style.display = 'none';
+		     $(".modal-footer #createbtn").text("Create");
+		     $(".modal-header #createtxt")[0].innerHTML = "Create Convention";
+		}
+	});
+	</script>
+</head>
+<body>
+
+    <% include ./partials/nav %>	
+
+    <% mapList = [];
+  	for (mapstage of mapstages) {
+	  	if (typeof mapList[mapstage.convention_id] == 'undefined') {
+			mapList[mapstage.convention_id] = [];
+		}
+		mapList[mapstage.convention_id].push(mapstage.stage_id);
+  	}
+    %>
+
+<div class="container">
+
+    <div class="page-header text-center">
+        <h1>Manage Conventions</h1>
+    </div>
+	
+    <div class="row">
+		<div class="col-sm-12">
+		            <form class="form-horizontal"  method="post"%>
+		              <div class="panel panel-default">
+		                <div class="panel-heading"><strong>Event Overview</strong></div>
+		                <div class="panel-body">
+		                  <p>List of created events</p>
+		                  <div class="form-group row">
+		                    <div class="col-sm-2">
+		                      <b>Name</b>
+		                    </div>
+		                    <div class="col-sm-5">
+		                      <b>Description</b>
+		                    </div>
+		                    <div class="col-sm-4">
+						  <b>Period</b>
+						</div>
+		                    <div class="col-sm-1">
+						  <b>Edit</b>
+		                    </div>
+		                  </div>
+						  <% for (convention of conventions) { %>
+			                  <div class="form-group row" style="<%= convention.convention_id == user.currentConvention.convention_id ? 'background-color: #DDFFDD;' : '' %>">
+			                    <div class="col-sm-2">
+			                      <b><%= convention.convention_name %></b>
+			                    </div>
+			                    <div class="col-sm-5">
+			                      <%= convention.convention_description %>
+			                    </div>
+			                    <div class="col-sm-4">
+								  <%= convention.date_from == null ? '-' : convention.date_from.getFullYear() + "-" + (convention.date_from.getMonth()+1) + "-" + convention.date_from.getDate() %> to 
+								  <%= convention.date_to == null ? '-' : convention.date_to.getFullYear() + "-" + (convention.date_to.getMonth()+1) + "-" + convention.date_to.getDate() %>
+			                    </div>
+			                    <div class="col-sm-1">
+								<button type="button" class="btn btn-primary open-myModal" 	
+											data-toggle="modal" 
+											data-target="#myModal" 
+											data-action="edit"
+											data-cid="<%= convention.convention_id %>"
+											data-cname="<%= convention.convention_name %>"
+											data-cdesc="<%= convention.convention_description %>"
+											data-ctemp="<%= convention.template_id %>"
+											data-cstage="<%= typeof mapList[convention.convention_id] == 'undefined' ? '' : mapList[convention.convention_id] %>"
+											data-cfrom="<%= convention.date_from == null ? '-' : convention.date_from.getFullYear() + "-" + (convention.date_from.getMonth()+1) + "-" + convention.date_from.getDate() %>"
+											data-cto="<%= convention.date_to == null ? '-' : convention.date_to.getFullYear() + "-" + (convention.date_to.getMonth()+1) + "-" + convention.date_to.getDate() %>">
+									<span class="glyphicon glyphicon-pencil"></span>
+								</button>
+			                    </div>
+			                  </div>
+						  <% } %>
+						  <button type="button" class="btn btn-primary open-myModal" data-toggle="modal" data-target="#myModal" data-action="create">Add convention</button>
+						</div>
+					  </div>
+					</form>
+					
+					
+					
+		</div>
+	</div>
+</div>
+
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+	 <form class="form-horizontal" method="post">
+	      <div class="modal-header">
+	    	   <input type="hidden" name="convention_id" id="cid">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title" id="createtxt">Create convention</h4>
+	      </div>
+	      <div class="modal-body">
+		   <div class="form-group">
+               <label class="col-sm-3 control-label">Title:</label>
+               <div class="col-sm-10">
+                 <input class="form-control" name="convention_name" id="cname">
+               </div>
+	        </div>
+		   <div class="form-group">
+               <label class="col-sm-3 control-label">Description:</label>
+               <div class="col-sm-10">
+                 <textarea class="form-control" name="convention_desc" id="cdesc"></textarea>
+               </div>
+	        </div>
+		   <div class="form-group">
+               <label class="col-sm-3 control-label">Template:</label>
+               <div class="col-sm-10">
+                 <select class="form-control" name="convention_template" id="ctemp">
+				  	<% for (template of templates) { %>
+			    		<option value="<%= template.template_id %>"><%= template.template_name %></option>
+			  		<% } %>
+			  </select>
+               </div>
+	        </div>
+		   <div class="form-group">
+               <label class="col-sm-3 control-label">Stages:</label>
+			<div class="col-sm-10 control-label">
+			  <% for (stage of stages) { %>
+                   <div class="col-sm-4" style="text-align:left">
+				 <label><input type="checkbox" name="convention_stage" value="<%= stage.stage_id %>"> <%= stage.stage_name %></label>
+                   </div>
+			  <% } %>
+			</div>
+			
+
+	        </div>
+		   
+		   <div class="form-group">
+	          <label class="col-sm-3 control-label">Event Time:</label>
+	          <div class="col-sm-10">
+			  <div class="input-daterange input-group" id="datepicker">
+			    <input type="text" class="form-control" name="start" id="cfrom" />
+			    <span class="input-group-addon">to</span>
+			    <input type="text" class="form-control" name="end" id="cto" />
+			  </div>
+	          </div>
+	        </div>
+		   <script>
+			   $('.input-daterange').datepicker({
+			        weekStart: 1,
+			        forceParse: false,
+			        calendarWeeks: true,
+			        todayHighlight: true,
+				   format: "yyyy-mm-dd",
+				   startDate: "0d"
+			   });
+		   </script>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="submit" class="btn btn-danger" id="deletebtn" name="actionType" value="delete">Delete</button>
+	        <button type="submit" class="btn btn-primary" id="createbtn" name="actionType" value="create">Create</button>
+		   <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+	      </div>
+ 	 </form>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>  

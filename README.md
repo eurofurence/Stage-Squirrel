@@ -1,2 +1,31 @@
-# Stage-Squirrel
-Eurofurence Stage event planning / coordination software ("electronic stage rider")
+ __ _                   __             _               _ 
+/ _\ |_ __ _  __ _  ___/ _\ __ _ _   _(_)_ __ _ __ ___| |
+\ \| __/ _` |/ _` |/ _ \ \ / _` | | | | | '__| '__/ _ \ |
+_\ \ || (_| | (_| |  __/\ \ (_| | |_| | | |  | | |  __/ |
+\__/\__\__,_|\__, |\___\__/\__, |\__,_|_|_|  |_|  \___|_|
+             |___/            |_|   __  __                    _ 
+                                   |  \/  |__ _ _ _ _  _ __ _| |
+                                   | |\/| / _` | ' \ || / _` | |
+    for Eurofurence e.V.           |_|  |_\__,_|_||_\_,_\__,_|_|
+                                                     
+		  		   
+Installation Manual for Stage Squirrel
+
+1. Execute initial_load.sql to create database 'stagesquirrel' and fill important data.
+2. Opt. create new SQL user with access to the database, giving following rights: select, delete, insert, update.
+3. Type 'npm install' in Stage Squirrel root will install all dependencies given by package.json
+4. Open config/config.js to change settings:
+	- you can change the sessionsecret
+	- please use the correct baseurl linking to the /views directory.
+	- insert your database user
+5. Register your admin account (choose whatever data)
+6. We should expect your registered user is the first one ans has the ID 1. So execute the following statements:
+	// activates the user
+	UPDATE `stagesquirrel`.`sq_user` SET `user_active`='1' WHERE `user_id` = 1;
+	
+	// deletes all other rights and grants admin rights to user
+	DELETE FROM sq_map_user_to_role WHERE user_id = 1;
+	INSERT INTO `stagesquirrel`.`sq_map_user_to_role` (`user_id`, `role_id`) VALUES ('1', '1');
+	
+7. Login with your account, goto Settings to activate other accounts
+8. Profit

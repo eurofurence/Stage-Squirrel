@@ -1,0 +1,93 @@
+<html>
+<head>
+    <title>Stage Squirrel - Admin Configuration</title>
+    <% include ./partials/head %>
+    <%
+    var userdb = [];
+    var riderdb = [];
+    var riderroledb = [];
+   
+    for (one_user of users) {
+  	  userdb[one_user.user_id] = one_user;
+    }
+   
+    for (rider of riders) {
+  	  riderdb[rider.event_id] = rider;
+    }
+	  for (one_role of riderroles) {
+		  riderroledb[one_role.event_id] = one_role;
+	  }
+    %>
+</head>
+<body>
+
+    <% include ./partials/nav %>	
+
+<div class="container">
+
+    <div class="page-header text-center">
+        <h1>Manage Events</h1>
+    </div>
+	          	<div class="col-lg-12">
+		            <form class="form-horizontal"  method="post"%>
+		              <div class="panel panel-default">
+		                <div class="panel-heading"><strong>Stage Rider Overview for <%= role.role_title %></strong></div>
+		                <div class="panel-body">
+			                  	    	<div class="form-group">
+				                    <div class="col-sm-3">
+				                      <b>Title</b>
+				                    </div>
+				                    <div class="col-sm-2">
+									  Event Day
+				                    </div>
+								<% if (role.role_id != 4) { %>
+				                    <div class="col-sm-2">
+									  Responsible
+				                    </div>
+				                    <div class="col-sm-1">
+									  Role
+				                    </div>
+				                    <div class="col-sm-1">
+									  Mgr
+				                    </div>
+								<% } %>
+				                    <div class="col-sm-2">
+									  Rider
+				                    </div>
+				                  </div>
+						  <% for (event of events) { %>
+			                  	    	<div class="form-group">
+				                    <div class="col-sm-3">
+				                      <b><%= event.event_title %></b>
+				                    </div>
+				                    <div class="col-sm-2">
+										<% console.log(event.event_day) %>
+									  <%= event.event_day == null ? '-' : event.event_day.getDate() + "." + (event.event_day.getMonth()+1) + "." + event.event_day.getFullYear() %>
+				                    </div>
+								<% if (role.role_id != 4) { %>
+				                    <div class="col-sm-2">
+									  <%= userdb[riderroledb[event.event_id].responsible_id].user_name %>
+				                    </div>
+				                    <div class="col-sm-1">
+									  <% if (riderroledb[event.event_id].confirmed_version_responsible == 1) { %>
+										  <span class="glyphicon glyphicon-ok"></span> 
+										  <% } %>
+				                    </div>
+				                    <div class="col-sm-1">
+									  <% if (riderroledb[event.event_id].confirmed_version_manager == 1) { %>
+										  <span class="glyphicon glyphicon-ok"></span> 
+									  <% } %>
+				                    </div>
+								<% } %>
+				                    <div class="col-sm-2">
+									  <a href="rider?id=<%= event.event_id %>#<%= role.role_title.toLowerCase() %>">show Rider</a>
+				                    </div>
+				                  </div>
+						  <% } %>
+						</div>
+					  </div>
+					</form>
+				</div>
+</div>
+</body>
+</html>  

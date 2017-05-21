@@ -1,0 +1,93 @@
+<html>
+<head>
+    <title>Stage Squirrel - Admin Configuration</title>
+    <% include ./partials/head %>
+    <%
+    var riderdb = [];
+   
+    for (rider of riders) {
+  	  riderdb[rider.event_id] = rider;
+    }
+    %>
+</head>
+<body>
+
+    <% include ./partials/nav %>	
+
+<div class="container">
+
+    <div class="page-header text-center">
+        <h1>Manage Events</h1>
+    </div>
+	          	<div class="col-lg-12">
+		            <form class="form-horizontal"  method="post"%>
+		              <div class="panel panel-default">
+		                <div class="panel-heading"><strong>My Stage Surveys</strong></div>
+		                <div class="panel-body">
+						 <% if (events.length != 0) { %>
+			                  	    	<div class="form-group">
+				                    <div class="col-sm-3">
+				                      <b>Title</b>
+				                    </div>
+				                    <div class="col-sm-1">
+									Mine
+				                    </div>
+				                    <div class="col-sm-1">
+									Mgr
+				                    </div>
+				                    <div class="col-sm-2">
+									Event Day
+				                    </div>
+				                    <div class="col-sm-2">
+									Time
+				                    </div>
+				                    <div class="col-sm-2">
+									Survey
+				                    </div>
+				                    <div class="col-sm-2">
+									Version
+				                    </div>
+				                  </div>					  
+						  <% for (event of events) { %>
+			                  	    	<div class="form-group">
+				                    <div class="col-sm-3">
+				                      <b><%= event.event_title %></b>
+				                    </div>
+				                    <div class="col-sm-1">
+									  <% if (event.event_confirmed_version_creator == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
+				                    </div>
+				                    <div class="col-sm-1">
+									  <% if (event.event_confirmed_version_manager == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
+				                    </div>
+				                    <div class="col-sm-2">
+									  <%= event.event_day == null ? '-' : event.event_day.getDate() + "." + (event.event_day.getMonth()+1) + "." + event.event_day.getFullYear() %>
+				                    </div>
+				                    <div class="col-sm-2">
+									<% if (typeof riderdb[event.event_id] != 'undefined') { 
+										  var time = (riderdb[event.event_id].startdate.getHours() < 10 ? '0' : '') + riderdb[event.event_id].startdate.getHours() + ':' +
+										  		   (riderdb[event.event_id].startdate.getMinutes() < 10 ? '0' : '') + riderdb[event.event_id].startdate.getMinutes(); %>
+										  <%= time %>
+									<% } %>
+				                    </div>
+				                    <div class="col-sm-2">
+									  <a href="create?id=<%= event.event_id %>">show Survey</a>
+				                    </div>
+				                    <div class="col-sm-2">
+									<%= event.event_max_version %>
+								</div>
+				                  </div>
+						  <% } %>
+						</div>
+						<% } else { %>
+			                 <div class="form-group">
+				                  <div class="col-sm-13">
+				                      <b>You don't have any Surveys now.</b>
+				                  </div>
+					  	   </div>
+						<% } %>
+					  </div>
+					</form>
+				</div>
+</div>
+</body>
+</html>  

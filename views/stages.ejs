@@ -1,0 +1,131 @@
+<html>
+<head>
+    <title>Stage Squirrel - Admin Configuration</title>
+    <% include ./partials/head %>
+    <style>
+	    .chosen-container {
+		    width: 100% !important;
+	    }
+	</style>
+	<script>
+	$(document).on("click", ".open-myModal", function () {
+		if ($(this).data('action') == "edit") {
+		     $(".modal-header #cid").val($(this).data('cid'));
+		     $(".modal-body #cname").val($(this).data('cname'));
+		     $(".modal-body #cdesc").val($(this).data('cdesc'));
+		     $(".modal-footer #deletebtn")[0].style.display = 'inline-block';
+		     $(".modal-footer #createbtn").text("Edit");
+		     $(".modal-header #createtxt")[0].innerHTML = "Edit Stage";
+		} else if ($(this).data('action') == "create") {
+		     $(".modal-header #cid").val("0");
+		     $(".modal-body #cname").val("");
+		     $(".modal-body #cdesc").val("");
+		     $(".modal-footer #deletebtn")[0].style.display = 'none';
+		     $(".modal-footer #createbtn").text("Create");
+		     $(".modal-header #createtxt")[0].innerHTML = "Create Stage";
+		}
+	});
+	</script>
+</head>
+<body>
+
+    <% include ./partials/nav %>	
+
+<div class="container">
+
+    <div class="page-header text-center">
+        <h1>Manage Stages</h1>
+    </div>
+	
+    <div class="row">
+		<div class="col-sm-12">
+		            <form class="form-horizontal"  method="post"%>
+		              <div class="panel panel-default">
+		                <div class="panel-heading"><strong>Stage Overview</strong></div>
+		                <div class="panel-body">
+		                  <p>List of stages</p>
+		                  <div class="form-group row">
+		                    <div class="col-sm-2">
+		                      <b>Name</b>
+		                    </div>
+		                    <div class="col-sm-7">
+		                      <b>Description</b>
+		                    </div>
+		                    <div class="col-sm-2">
+						  <b>Uses</b>
+						</div>
+		                    <div class="col-sm-1">
+						  <b>Edit</b>
+		                    </div>
+		                  </div>
+						  <% for (stage of stages) { %>
+			                  <div class="form-group row">
+			                    <div class="col-sm-2">
+			                      <b><%= stage.stage_name %></b>
+			                    </div>
+			                    <div class="col-sm-7">
+			                      <%= stage.stage_description %>
+			                    </div>
+			                    <div class="col-sm-2">
+							  <%= stage.qty %>	  
+			                    </div>
+			                    <div class="col-sm-1">
+								<button type="button" class="btn btn-primary open-myModal" 	
+											data-toggle="modal" 
+											data-target="#myModal" 
+											data-action="edit"
+											data-cid="<%= stage.stage_id %>"
+											data-cname="<%= stage.stage_name %>"
+											data-cdesc="<%= stage.stage_description %>">
+									<span class="glyphicon glyphicon-pencil"></span>
+								</button>
+			                    </div>
+			                  </div>
+						  <% } %>
+						  <button type="button" class="btn btn-primary open-myModal" data-toggle="modal" data-target="#myModal" data-action="create">Add stage</button>
+						</div>
+					  </div>
+					</form>
+					
+					
+					
+		</div>
+	</div>
+</div>
+
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+	 <form class="form-horizontal" method="post">
+	      <div class="modal-header">
+	    	   <input type="hidden" name="stage_id" id="cid">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title" id="createtxt">Create Stage</h4>
+	      </div>
+	      <div class="modal-body">
+		   <div class="form-group">
+               <label class="col-sm-3 control-label">Title:</label>
+               <div class="col-sm-10">
+                 <input class="form-control" name="stage_name" id="cname">
+               </div>
+	        </div>
+		   <div class="form-group">
+               <label class="col-sm-3 control-label">Description:</label>
+               <div class="col-sm-10">
+                 <textarea class="form-control" name="stage_desc" id="cdesc"></textarea>
+               </div>
+	        </div>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="submit" class="btn btn-danger" id="deletebtn" name="actionType" value="delete">Delete</button>
+	        <button type="submit" class="btn btn-primary" id="createbtn" name="actionType" value="create">Create</button>
+		   <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+	      </div>
+ 	 </form>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>  
