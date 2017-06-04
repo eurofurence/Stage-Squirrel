@@ -277,8 +277,8 @@ CREATE TABLE `sq_stage` (
   `stage_id` int(11) NOT NULL AUTO_INCREMENT,
   `stage_name` varchar(60) DEFAULT NULL,
   `stage_description` varchar(255) NOT NULL,
-  `stage_from` datetime NOT NULL,
-  `stage_to` datetime NOT NULL,
+  `stage_from` datetime DEFAULT NULL,
+  `stage_to` datetime DEFAULT NULL,
   PRIMARY KEY (`stage_id`),
   UNIQUE KEY `stage_id_UNIQUE` (`stage_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -423,6 +423,6 @@ INSERT INTO `sq_map_convention_to_stage` (`convention_id`,`stage_id`) VALUES (1,
 INSERT INTO `sq_map_convention_to_stage` (`convention_id`,`stage_id`) VALUES (1,3);
 
 
-INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (1,'Main-Stage','Interior big hall in the hotel','0000-00-00 00:00:00','0000-00-00 00:00:00');
-INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (2,'Club-Stage','','0000-00-00 00:00:00','0000-00-00 00:00:00');
-INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (3,'Open-Stage','','0000-00-00 00:00:00','0000-00-00 00:00:00');
+INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (1,'Main-Stage','Interior big hall in the hotel',NULL,NULL);
+INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (2,'Club-Stage','',NULL,NULL);
+INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (3,'Open-Stage','',NULL,NULL);
