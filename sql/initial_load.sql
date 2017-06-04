@@ -423,6 +423,6 @@ INSERT INTO `sq_map_convention_to_stage` (`convention_id`,`stage_id`) VALUES (1,
 INSERT INTO `sq_map_convention_to_stage` (`convention_id`,`stage_id`) VALUES (1,3);
 
 
-INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (1,'Main-Stage','Interior big hall in the hotel','0000-00-00 00:00:00','0000-00-00 00:00:00');
-INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (2,'Club-Stage','','0000-00-00 00:00:00','0000-00-00 00:00:00');
-INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (3,'Open-Stage','','0000-00-00 00:00:00','0000-00-00 00:00:00');
+INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (1,'Main-Stage','Interior big hall in the hotel',CURDATE(),CURDATE() + INTERVAL 6 DAY);
+INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (2,'Club-Stage','',CURDATE(),CURDATE() + INTERVAL 6 DAY);
+INSERT INTO `sq_stage` (`stage_id`,`stage_name`,`stage_description`,`stage_from`,`stage_to`) VALUES (3,'Open-Stage','',CURDATE(),CURDATE() + INTERVAL 6 DAY);
