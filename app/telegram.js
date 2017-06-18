@@ -1,4 +1,5 @@
 var config = require('../config/config.js');
+var util = require('./utils.js');
 
 // mySQL Integration
 var connection;
@@ -76,43 +77,6 @@ function refreshDBs() {
 	});
 }
 
-// Handle Times
-function getTimeSQLtoJS(timeString) {
-	// Split timestamp into [ Y, M, D, h, m, s ]
-	var t = timeString.split(/[- :]/);
-
-	// Apply each element to the Date function
-	var d = new Date(Date.UTC(t[0], t[1]-1, t[2], t[3], t[4], t[5]));
-
-	return d;
-}
-
-function getTimeJStoSQL(timeString) {
-	// Your default date object  
-	var starttime = new Date();
-	// Get the iso time (GMT 0 == UTC 0)
-	var isotime = new Date((new Date(timeString)).toISOString() );
-	// getTime() is the unix time value, in milliseconds.
-	// getTimezoneOffset() is UTC time and local time in minutes.
-	// 60000 = 60*1000 converts getTimezoneOffset() from minutes to milliseconds. 
-	var fixedtime = new Date(isotime.getTime()-(starttime.getTimezoneOffset()*60000));
-	// toISOString() is always 24 characters long: YYYY-MM-DDTHH:mm:ss.sssZ.
-	// .slice(0, 19) removes the last 5 chars, ".sssZ",which is (UTC offset).
-	// .replace('T', ' ') removes the pad between the date and time.
-	var formatedMysqlString = fixedtime.toISOString().slice(0, 19).replace('T', ' ');
-	return formatedMysqlString;
-}
-
-// generate uniqueCode
-function generateCode(codeLength) {
-	var allowed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-	var code = "";
-	for (var i = 0; i < codeLength; i++) {
-		code += allowed[parseInt(Math.random() * allowed.length)];
-	}
-	return code;
-}
-
 function startBot() {
 	if (api_token == "") {
 		console.log("No Telegram API Key provided. Bot is disabled.")
@@ -178,8 +142,8 @@ telegram.on('message', (message) => {
 				if (rows.length == 0 || rows[0].user_telegram_linked == '0') {
 					var now = new Date();
 					var validThru = new Date(now.getTime() + (60000 * 10));
-					var varifyCode = generateCode(6);
-					connection.query('UPDATE sq_user SET user_telegram_id = ?, user_telegram_confirmation_key = ?, user_telegram_confirmation_valid_to = ? WHERE user_name = ?', [message.chat.id, varifyCode, getTimeJStoSQL(validThru), message.text.substring(6)], function (err, rows) {
+					var varifyCode = util.generateCode(6);
+					connection.query('UPDATE sq_user SET user_telegram_id = ?, user_telegram_confirmation_key = ?, user_telegram_confirmation_valid_to = ? WHERE user_name = ?', [message.chat.id, varifyCode, util.getTimeJStoSQL(validThru), message.text.substring(6)], function (err, rows) {
 						telegram.sendMessage(message.chat.id, 'The username ' + message.text.substring(6) + ' can now link Telegram and StageSquirrel by using the following code on the StageSquirrel Profile Settings: ' + varifyCode + ' (This code will only be valid till ' + validThru.toLocaleTimeString() + ')');
 					});
 				} else {

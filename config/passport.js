@@ -1,4 +1,5 @@
 var config = require('../config/config.js');
+var util = require('../app/utils.js');
 var crypt = require('bcrypt');
 // config/passport.js
 				
@@ -189,28 +190,28 @@ module.exports = function(passport) {
 					
 	   			    } 
 				
-					console.log(banned);
+	   				if (banned) return done(null, false, req.flash('loginMessage', 'Sorry, your ip address has been banned for the next ' + parseInt((banned.getTime() - now.getTime()) / 60000) + " minutes because of to many login attempts."));
 	   				if (!rows.length || !(crypt.compareSync(password, rows[0].user_password)) && !banned){		
 	   					try_count++;
 	   					if (rows_attempts.length) {
 	   						var strBanned = "";
 	   						console.log("IP " + req.connection.remoteAddress + " used " + try_count + "x wrong credentials.");
+	   						banned = null;
 	   						if (try_count >= (cfg["MAX_LOGIN_ATTEMPTS"].value) && banned == null) {
 	   							console.log("IP " + req.connection.remoteAddress + " will now be banned for " + cfg["TIME_IP_BAN"].value + " min.");
-								
-	   							banned = new Date();
+								banned = new Date();
 	   							banned.setTime(banned.getTime() + 1000 * 60 * cfg["TIME_IP_BAN"].value);
-	   							strBanned = "', attempt_banned_until = '" + banned.toLocaleString();
+	   							strBanned = "', attempt_banned_until = '" + util.getTimeJStoSQL(banned);
 	   						} 
-	   						connection.query("UPDATE sq_login_attempts SET attempt_count = '" + try_count + "', attempt_last_try = '" + new Date().toLocaleString() + strBanned + "' WHERE `attempt_ip` = '" + req.connection.remoteAddress + "'");
+	   						connection.query("UPDATE sq_login_attempts SET attempt_count = '" + try_count + "', attempt_last_try = '" + util.getTimeJStoSQL(now) + strBanned + "' WHERE `attempt_ip` = '" + req.connection.remoteAddress + "'");
+			   				if (banned) return done(null, false, req.flash('loginMessage', 'Sorry, your ip address has been banned for the next ' + parseInt((banned.getTime() - now.getTime()) / 60000) + " minutes because of to many login attempts."));
 	   					} else {
-	   						connection.query("INSERT INTO sq_login_attempts (`attempt_id`, `attempt_ip`, `attempt_count`, `attempt_last_try`) VALUES (NULL, '" + req.connection.remoteAddress + "', '1', '" + now.toLocaleString() + "')");
+	   						connection.query("INSERT INTO sq_login_attempts (`attempt_id`, `attempt_ip`, `attempt_count`, `attempt_last_try`) VALUES (NULL, '" + req.connection.remoteAddress + "', '1', '" + util.getTimeJStoSQL(now) + "')");
 	   					} 
 	   					return done(null, false, req.flash('loginMessage', 'Wrong account. Try #' + try_count)); // req.flash is the way to set flashdata using connect-flash
 	   				}
-	   				if (banned) return done(null, false, req.flash('loginMessage', 'Sorry, your ip address has been banned for the next ' + parseInt((banned.getTime() - now.getTime()) / 60000) + " minutes because of to many login attempts."));
 				   
-				    if (rows[0].user_active == 1) connection.query("UPDATE sq_user SET user_last_login = '" + now.toLocaleString() + "' WHERE user_id = " + rows[0].user_id);
+				    if (rows[0].user_active == 1) connection.query("UPDATE sq_user SET user_last_login = '" + util.getTimeJStoSQL(now) + "' WHERE user_id = " + rows[0].user_id);
 					
 					rows[0].user_roles = [];
 					console.log("SELECT roles_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id);

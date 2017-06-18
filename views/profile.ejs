@@ -60,7 +60,7 @@
 			    <div class="panel panel-default general">
 				     <div class="panel-heading"><strong>Telegram Integration</strong></div>
 			    		<div class="panel-body">
-             			  	<p>You can get important notification with our Telegram-Bot, just search for "@sq_test_bot" on Telegram or click <a href="https://web.telegram.org/#/im?p=@sq_test_bot">here</a> for Telegram Web.</p>
+             			  	<p>You can get important notification with our Telegram-Bot, just search for "<%- telegrambotname %>" on Telegram or click <a href="https://web.telegram.org/#/im?p=<%- telegrambotname %>">here</a> for Telegram Web.</p>
 					     <% if (typeof error != 'undefined' && error.length > 0) { %>
 					         <div class="alert alert-danger"><%= error %></div>
 					     <% } %>

@@ -1,6 +1,7 @@
 // mySQL Integration
 var mysql = require('mysql');
 var config = require('../config/config.js');
+var util = require('./utils.js');
 var connection;
 
 function handleDisconnect() {
@@ -34,27 +35,10 @@ if (typeof telegram != 'undefined') {
 	});
 } 
 
-// TimeConverter
-function getTimeJStoSQL(timeString) {
-	// Your default date object  
-	var starttime = new Date();
-	// Get the iso time (GMT 0 == UTC 0)
-	var isotime = new Date((new Date(timeString)).toISOString() );
-	// getTime() is the unix time value, in milliseconds.
-	// getTimezoneOffset() is UTC time and local time in minutes.
-	// 60000 = 60*1000 converts getTimezoneOffset() from minutes to milliseconds. 
-	var fixedtime = new Date(isotime.getTime()-(starttime.getTimezoneOffset()*60000));
-	// toISOString() is always 24 characters long: YYYY-MM-DDTHH:mm:ss.sssZ.
-	// .slice(0, 19) removes the last 5 chars, ".sssZ",which is (UTC offset).
-	// .replace('T', ' ') removes the pad between the date and time.
-	var formatedMysqlString = fixedtime.toISOString().slice(0, 19).replace('T', ' ');
-	return formatedMysqlString;
-}
-
 // NotificationService
 function notificationService(typeId, eventId, versionId, senderId, roleId) {
 	var now = new Date();
-	var params = [typeId, eventId, versionId, senderId, roleId, getTimeJStoSQL(now)];
+	var params = [typeId, eventId, versionId, senderId, roleId, util.getTimeJStoSQL(now)];
 	connection.query("INSERT INTO sq_notifications (`type_id`, `event_id`, `convention_id`, `version_id`, `sender_id`, `role_id`, `created_on`) VALUES (?, ?, (SELECT convention_id from sq_events where sq_events.event_id = 25), ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); }});
 	if (telegramintegration == 'true') {
 		telegram.notify(typeId, eventId, versionId, senderId, roleId);
@@ -158,11 +142,14 @@ module.exports = function(app, passport) {
     // we will want this protected so you have to be logged in to visit
     // we will use route middleware to verify this (the isLoggedIn function)
     app.get('/profile', isLoggedIn, function(req, res) {
-        res.render('profile.ejs', {
-			nav: 'profile',
-            user : req.user,
-		   telegram:  telegramintegration // get the user out of session and pass to template
-        });
+    		connection.query("SELECT configuration_value FROM sq_configuration WHERE configuration_key = 'TELEGRAM_BOT_NAME'", function (err, result) {
+          	res.render('profile.ejs', {
+  				nav: 'profile',
+              		user : req.user,
+  		   		telegram:  telegramintegration, // get the user out of session and pass to template
+				telegrambotname: result[0].configuration_value
+          	});
+    		});
     });
     
     app.post('/profile', isLoggedIn, function(req, res) {
@@ -561,7 +548,7 @@ module.exports = function(app, passport) {
 			res.redirect('/rider?id=' + req.body.event_id);
 		}
 		if (req.body.actionType == "editGeneral") {
-			params = [req.body.creator_id, req.body.eventmgr_mobile, req.user.user_id, req.body.stagemgr_mobile, req.body.crew_lxd, req.body.crew_lx1, req.body.crew_lx2, req.body.crew_a1, req.body.crew_a2, req.body.crew_a3, req.body.crew_stagedecktech, req.body.crew_bananassetup, req.body.crew_bananasshow, req.body.crew_bananasbreakdown, getTimeJStoSQL(req.body.starttime), req.body.event_id];
+			params = [req.body.creator_id, req.body.eventmgr_mobile, req.user.user_id, req.body.stagemgr_mobile, req.body.crew_lxd, req.body.crew_lx1, req.body.crew_lx2, req.body.crew_a1, req.body.crew_a2, req.body.crew_a3, req.body.crew_stagedecktech, req.body.crew_bananassetup, req.body.crew_bananasshow, req.body.crew_bananasbreakdown, util.getTimeJStoSQL(req.body.starttime), req.body.event_id];
 			connection.query("UPDATE sq_riders SET creator_id = ?, creator_mobile = ?, manager_id = ?, manager_mobile = ?, crew_lxd = ?, crew_lx1 = ?, crew_lx2 = ?, crew_a1 = ?, crew_a2 = ?, crew_a3 = ?, crew_stagedecktech = ?, crew_bananassetup = ?, crew_bananasshow = ?, crew_bananasbreakdown = ?, startdate = ? WHERE event_id = ?", params, function(err,state){ if(err) { console.log(err); } } );
 			console.log(req.body);
 
@@ -591,7 +578,7 @@ module.exports = function(app, passport) {
 		}
 		if (req.body.actionType == "create") {
 			
-			params = [req.body.event_id, req.body.creator_id, req.body.eventmgr_mobile, req.user.user_id, req.body.stagemgr_mobile, req.body.crew_lxd, req.body.crew_lx1, req.body.crew_lx2, req.body.crew_a1, req.body.crew_a2, req.body.crew_a3, req.body.crew_stagedecktech, req.body.crew_bananassetup, req.body.crew_bananasshow, req.body.crew_bananasbreakdown, getTimeJStoSQL(req.body.starttime)];
+			params = [req.body.event_id, req.body.creator_id, req.body.eventmgr_mobile, req.user.user_id, req.body.stagemgr_mobile, req.body.crew_lxd, req.body.crew_lx1, req.body.crew_lx2, req.body.crew_a1, req.body.crew_a2, req.body.crew_a3, req.body.crew_stagedecktech, req.body.crew_bananassetup, req.body.crew_bananasshow, req.body.crew_bananasbreakdown, util.getTimeJStoSQL(req.body.starttime)];
 			connection.query("INSERT INTO sq_riders (event_id, creator_id, creator_mobile, manager_id, manager_mobile, crew_lxd, crew_lx1, crew_lx2, crew_a1, crew_a2, crew_a3, crew_stagedecktech, crew_bananassetup, crew_bananasshow, crew_bananasbreakdown, startdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); } 
 				notificationService(6, req.body.event_id, 1, req.user.user_id, null);
 				for (var i = 0; i < req.body.role_id.length; i++) {
@@ -615,7 +602,7 @@ module.exports = function(app, passport) {
 		}
 		if (req.body.actionType == "comment") {
 			var rolestring = req.body.commentrole.toString().replace(/,/g,';');
-			connection.query("INSERT INTO sq_rider_comments (`event_id`, `user_id`, `create_time`, `comment_value`, `affected_roles`) VALUES (?, ?, ?, ?, ?)", [req.body.event_id, req.user.user_id, getTimeJStoSQL(new Date()), req.body.comment_content, rolestring]);
+			connection.query("INSERT INTO sq_rider_comments (`event_id`, `user_id`, `create_time`, `comment_value`, `affected_roles`) VALUES (?, ?, ?, ?, ?)", [req.body.event_id, req.user.user_id, util.getTimeJStoSQL(new Date()), req.body.comment_content, rolestring]);
 			res.redirect('/rider?id=' + req.body.event_id + '#comment-' + req.body.comment_no);
 		} 
 });
