@@ -196,10 +196,10 @@
 					} else { 
 						fields[i].readOnly = true;
 					} 
-					if (fields[i].name.substr(3,3) == "lab") { fields[i].value = stageboxcontent[version][i].stagebox_label; }
-					if (fields[i].name.substr(3,3) == "sub") { fields[i].value = stageboxcontent[version][i].stagebox_subcore; }
-					if (fields[i].name.substr(3,3) == "48v") { fields[i].value = stageboxcontent[version][i].stagebox_48v; }
-					if (fields[i].name.substr(3,3) == "via") { fields[i].value = stageboxcontent[version][i].stagebox_viadi; }
+					if (fields[i].name.substr(3,3) == "lab") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_label; }
+					if (fields[i].name.substr(3,3) == "sub") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_subcore; }
+					if (fields[i].name.substr(3,3) == "48v") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_48v; }
+					if (fields[i].name.substr(3,3) == "via") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_viadi; }
 					
 				}
 			}
