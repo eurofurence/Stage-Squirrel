@@ -13,19 +13,22 @@ Installation Manual for Stage Squirrel
 
 1. Execute initial_load.sql to create database 'stagesquirrel' and fill important data.
 2. Opt. create new SQL user with access to the database, giving following rights: select, delete, insert, update.
-3. Type 'npm install' in Stage Squirrel root will install all dependencies given by package.json
-4. Open config/config.js to change settings:
+3. Make sure both npm and node are present in your $PATH variable 
+4. Type 'npm install' in Stage Squirrel root will install all dependencies given by package.json
+5. Open config/config.js to change settings:
 	- you can change the sessionsecret
-	- please use the correct baseurl linking to the /views directory.
 	- insert your database user
-5. Register your admin account (choose whatever data)
-6. We should expect your registered user is the first one ans has the ID 1. So execute the following statements:
+	- Setup baseurl to match the URL users will use to access this Stage Squirrel installation
+6. Setup ip' and 'port' in server.js according to your needs (by default, Stage Squirrel wil listen on interface 127.0.0.1 and port 8500)
+7. In Stage Squirrel root, type 'npm start' to bring up your Stage Squirrel installation
+8. Register your admin account (choose whatever data)
+9. We should expect your registered user is the first one ans has the ID 1. So execute the following statements:
 	// activates the user
-	UPDATE `stagesquirrel`.`sq_user` SET `user_active`='1' WHERE `user_id` = 1;
+	UPDATE `stagesquirrel`.`sq_user` SET `user_active`= '1' WHERE `user_id` = '1';
 	
 	// deletes all other rights and grants admin rights to user
-	DELETE FROM sq_map_user_to_role WHERE user_id = 1;
+	DELETE FROM `stagesquirrel`.`sq_map_user_to_role` WHERE `user_id` = '1';
 	INSERT INTO `stagesquirrel`.`sq_map_user_to_role` (`user_id`, `role_id`) VALUES ('1', '1');
 	
-7. Login with your account, goto Settings to activate other accounts
-8. Profit
+10. Login with your account, goto Settings to activate other accounts
+11. Profit
