@@ -45,6 +45,10 @@
     <!-- LOGIN FORM -->
     <form action="/signup" method="post" onsubmit="return checkForm(this)">
         <div class="form-group">
+            <label>Username</label>
+            <input type="text" class="form-control" name="user_name" required>
+        </div>
+        <div class="form-group">
             <label>Email</label>
             <input type="email" class="form-control" name="email" required title="Enter a valid mail address">
         </div>
@@ -58,10 +62,6 @@
             <input type="password" class="form-control" name="password2" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" required title="Please enter the same Password as above">
         </div>
 		<% } %>
-        <div class="form-group">
-            <label>Username</label>
-            <input type="text" class="form-control" name="user_name" required>
-        </div>
         <div class="form-group">
             <label>Userrole</label>
 			<select name="userrole" multiple class="chosen-select" required>
