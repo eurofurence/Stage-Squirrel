@@ -1,0 +1,364 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:             stagesquirrel
+# Required-Start:       $remote_fs mysql
+# Required-Stop:        $remote_fs mysql
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6 
+# Short-Description:    node running Stage Squirrel
+### END INIT INFO
+
+
+set -e
+
+
+readonly THIS_SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
+readonly INIT_SCRIPT_CONFIG="${THIS_SCRIPT_PATH}/config/startup.conf"
+
+
+display_usage() {
+  echo "Usage: $(basename "$0") {start|stop|status|restart|test-config}"
+}
+
+
+read_init_config() {
+# Initializes the config file for this script and checks it against this system
+# return 2 on missing arguments
+# return 4 on permission errors
+# return 1 on generic errors
+
+  if ! [ -e "${INIT_SCRIPT_CONFIG}" ] ; then
+    echo "Missing config file ${INIT_SCRIPT_CONFIG}"
+    return 1
+  fi
+
+
+  old_IFS="${IFS}"
+  IFS="="
+
+  while read -r parameter value ; do
+    case "${parameter}" in
+      program_home) program_home="${value}" ;;
+      nodejs_bin_dir) nodejs_bin_dir="${value}" ;;
+      logfile) logfile="${value}" ;;
+      pidfile) pidfile="${value}" ;;
+      startup_timeout) startup_timeout="${value}" ;;
+      sigkill_timeout) sigkill_timeout="${value}" ;;
+      user) run_user="${value}" ;;
+      '#'*) continue ;; # ignore comments
+      *) printf "Option \"${parameter}\" with value \"${value}\" "
+         printf "in ${INIT_SCRIPT_CONFIG} unknown.\n" 
+         return 1
+      ;;
+    esac
+  done < "${INIT_SCRIPT_CONFIG}"
+
+  IFS="${old_IFS}"
+
+
+
+  if [ -z "${logfile}" ] ; then
+    echo "Missing mandatory parameter \"logfile\" in config file \"${INIT_SCRIPT_CONFIG}\""
+    return 2
+  fi
+
+  if [ -z "${pidfile}" ] ; then
+    echo "Missing mandatory parameter \"pidfile\" in config file \"${INIT_SCRIPT_CONFIG}\""
+    return 2
+  fi
+
+  if [ -z "${startup_timeout}" ] ; then
+    echo "Missing mandatory parameter \"startup_timeout\" in config file \"${INIT_SCRIPT_CONFIG}\""
+    return 2
+  fi
+
+  if [ -z "${sigkill_timeout}" ] ; then
+    echo "Missing mandatory parameter \"sigkill_timeout\" in config file \"${INIT_SCRIPT_CONFIG}\""
+    return 2
+  fi
+
+  if [ -z "${program_home}" ] ; then 
+    program_home="${THIS_SCRIPT_PATH}" # assume we share a dir with the program
+  fi
+
+  if ! [ -d "${program_home}" ] ; then
+    echo "Directory \"${program_home}\" does not exist."
+    return 1
+  fi
+
+
+
+  # When configured user is current user, or no user was set:
+  if [ "${run_user}" = "${USER}" ] || [ -z "${run_user}" ] ; then
+    if [ "$(id --u)" -eq "0" ] ; then 
+      echo "Refusing to launch this program as UID 0"
+      return 2
+    fi
+    switch_user_context="false"
+    cd "${program_home}" # Allows for relative pathes in .conf
+
+  elif [ "$(id -u)" -eq "0" ] ; then
+
+    if id "${run_user}" > /dev/null 2>&1 ; then
+      switch_user_context="true"
+      cd "${program_home}" # Allows for relative pathes in .conf
+
+      # The cd to ${program_home} must to be additionally passed to any 
+      # invoked loginshell relying on relative pathes
+
+    else
+      echo "User \"${run_user}\" does not exist on this system"
+      return 2
+    fi 
+
+  else
+    echo "Cannot switch user to "${run_user}" as we're not UID 0"
+    return 4
+  fi
+
+
+  if [ -z "${nodejs_bin_dir}" ] ; then
+
+    if command -v node > /dev/null 2>&1 ; then
+      nodejs_bin_dir="$(dirname $(command -v node))" # use node from $PATH
+    else 
+      echo 'nodejs_bin_dir not configured and no suitable node found in $PATH'
+      return 2
+    fi
+
+  fi
+
+  if ! [ -d "${nodejs_bin_dir}" ] ; then
+    echo "Directory \"${nodejs_bin_dir}\" does not exist."
+    return 1
+  fi
+
+  if ! [ -e "${nodejs_bin_dir}/node" ] ; then
+    echo "\"${nodejs_bin_dir}/node\" does not exist but is needed."
+    return 1
+  fi
+
+
+  if ! echo "${startup_timeout}" | grep -q '^[0-9]*$' ; then
+    echo "Value of startup_timeout has to be a number but is \"${startup_timeout}\""
+    return 2
+  fi
+
+  if ! echo "${sigkill_timeout}" | grep -q '^[0-9]*$' ; then
+    echo "Value of sigkill_timeout has to be a number but is \"${sigkill_timeout}\""
+    return 2
+  fi
+
+
+  if [ "${switch_user_context}" = "true" ] ; then
+
+    if ! su "${run_user}" -l -c "cd ${program_home} ; touch ${logfile}" ; then
+      echo "User \"${run_user}\" can't write to logfile: \"${logfile}\""
+      return 4
+    fi
+
+    if ! su "${run_user}" -l -c "cd ${program_home} ; touch ${pidfile}" ; then
+      echo "User \"${run_user}\" can't write to pidfile: \"${pidfile}\""
+      return 4
+    fi
+
+  else
+
+    if ! touch "${logfile}" ; then
+      echo "Can't write to logfile: \"${logfile}\""
+      return 4
+    fi
+
+    if ! touch "${pidfile}" ; then
+      echo "Can't write to pidfile: \"${pidfile}\""
+      return 4
+    fi
+    
+  fi 
+
+
+}
+
+
+program_start() {
+
+  if [ "${switch_user_context}" = "true" ] ; then
+    newpid=$(su "${run_user}" -l -c "cd ${program_home} ; \
+                 ${nodejs_bin_dir}/node server.js         \
+                 >> ${logfile} 2>&1 & echo \$!"           \
+            )
+  else
+    ${nodejs_bin_dir}/node "server.js" >> "${logfile}" 2>&1 &
+    newpid="$!"
+  fi
+
+  echo "Started with PID: ${newpid}"
+  echo "${newpid}" > "${pidfile}"
+} 
+
+
+program_stop() {
+
+  pid_from_pidfile=$(cat "${pidfile}")
+
+
+  if "${switch_user_context}" = "true" ] ; then
+    su "${run_user}" -l -c "kill -2 ${pid_from_pidfile}"
+  else
+    kill -2 "${pid_from_pidfile}"
+  fi
+
+  echo "Sent SIGINT to PID: ${pid_from_pidfile}"
+}
+
+
+program_force_stop() {
+
+  pid_from_pidfile=$(cat "${pidfile}")
+
+
+  if "${switch_user_context}" = "true" ] ; then
+    su "${run_user}" -l -c "kill -2 ${pid_from_pidfile}"
+  else
+    kill -9 "${pid_from_pidfile}"
+  fi
+
+  echo "Sent SIGKILL to PID: ${pid_from_pidfile}"
+}
+
+
+program_status() {
+  # returns 0 when PID is alive
+  # returns 1 if PID is dead
+  # First argument can be: --skip-stall-check
+  # When passed, no check for a stalled pidfile is performed
+  
+  pid_from_pidfile=$(cat "${pidfile}")
+  local do_stalled_pidfile_check
+
+
+  if [ "$1" = "--skip-stall-check" ] ; then
+    do_stalled_pidfile_check="false"
+  else
+    do_stalled_pidfile_check="true"
+  fi
+
+
+  if [ "${pid_from_pidfile}" -gt "1" > /dev/null 2>&1 ] ; then # We have a valid pid
+
+    if kill -0 "${pid_from_pidfile}" > /dev/null 2>&1 ; then # And it's not stalled
+      return 0 # Program is already running
+
+    elif [ "${do_stalled_pidfile_check}" = "true" ] ; then
+      echo "PID from pidfile does not exist in system. Please check manually"
+      echo "Clearing stall pidfile"
+      true > "${pidfile}"
+      return 1
+
+    fi
+
+  else 
+    return 1 # Assume it's not running since no valid PID"
+  fi
+}
+
+
+main() {
+
+  case "$1" in
+    start)
+      read_init_config
+
+      if program_status ; then 
+        echo "Already running with PID: ${pid_from_pidfile}"
+        return 1
+      else
+        program_start
+        echo "Waiting "${startup_timeout}"s for server to come up..."
+        sleep "${startup_timeout}"
+        
+        if ! program_status ; then
+          echo "There was an error during startup. Check you logfiles"
+          return 1
+        else
+          echo "OK"
+          echo "Printing last line from logfile:"
+          tail -n 1 "${logfile}"
+          return 0
+        fi
+
+      fi
+    ;; 
+
+    stop)
+      read_init_config
+
+      if program_status ; then 
+        program_stop
+        sleep "${sigkill_timeout}"
+
+        # Skip stalling check since we expect the PID from the pidfile is gone
+        if ! program_status --skip-stall-check ; then
+          echo "Didn't exit within configured timeout of ${sigkill_tiemout}s"
+          program_force_stop
+          sleep "${sigkill_timeout}"
+          
+          if ! program_status --skip-stall-check ; then
+            echo "PID is still alive. Giving up."
+            return 1
+          fi
+
+        else
+          echo "OK"
+          true > "${pidfile}"
+          return 0
+        fi  
+
+      else
+        echo "Nothing to stop"
+        return 1
+      fi
+    ;;
+
+    status)
+      read_init_config
+
+      if program_status ; then 
+        echo "Running with PID: ${pid_from_pidfile}"
+        exit 0
+      else
+        echo "Not running"
+        exit 3
+      fi
+    ;; 
+
+    restart)
+      read_init_config
+      if program_status ; then 
+        main stop
+        echo "Restarting..."
+        main start
+      else
+        echo "No running process found. Starting..."
+        main start
+      fi
+    ;;
+
+    test-config)
+      read_init_config && echo "Config OK"
+    ;;
+
+    *)
+      display_usage
+      return 2
+    ;;
+
+  esac
+}
+
+
+main "$@"
+
+
+# vim: syntax=sh
