@@ -1,5 +1,6 @@
 module.exports = {
     'sessionsecret' : 'rosesareredvioletsarebluescrewyou',	// can be changed
+    'listenport' : 8500,
     'baseurl' : 'localhost:8500',       // change to real url to affect links
     'telegramfeedbackid' : 74757107,	// leave blank to disable /feedback feature
     'locale' : 'en',				// only affects telegram bot now

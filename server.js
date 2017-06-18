@@ -8,7 +8,6 @@ var app      = express();
 // choose on which interface and port stage-squirrel will listen.
 // Set ip to '0.0.0.0' for all interfaces
 var ip       = process.env.IP || '127.0.0.1';
-var port     = process.env.PORT || 8500;
 //  var mongoose = require('mongoose');
 var mysql    = require('mysql');
 var sqcfg = require('./config/config.js');
@@ -59,5 +58,5 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
 // launch ======================================================================
-app.listen(port, ip);
+app.listen(sqcfg.listenport, ip);
 console.log('The magic happens at ' + ip + ':' + port);
