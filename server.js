@@ -59,4 +59,4 @@ require('./app/routes.js')(app, passport); // load our routes and pass in our ap
 
 // launch ======================================================================
 app.listen(sqcfg.listenport, ip);
-console.log('The magic happens at ' + ip + ':' + port);
+console.log('The magic happens at ' + ip + ':' + sqcfg.listenport);
