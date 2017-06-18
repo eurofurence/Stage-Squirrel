@@ -134,11 +134,25 @@ if (event != null) {
 	            <form class="form-horizontal"  method="post" onsubmit="return confirm('Do you really want to <%= event_id > 0 ? 'confirm the changes' : 'create that survey' %>?');" %>
 				  <input name="event_id" type="hidden" value="<%=event_id %>">
 				  <input name="version" type="hidden" value="<%=version %>">
-				  <input name="event_manager" type="hidden" value="<%=event_creator %>">
 	              <div class="panel panel-default">
 	                <div class="panel-heading"><strong>Tell us about your event</strong></div>
 	                <div class="panel-body">
 	                  <p>Basic info up front</p>
+				   <% if (user.isManager && create) { %>
+	                  <div class="form-group">
+	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Who will be the Event Manager?</label>
+	                    <div class="col-sm-8">
+	                      <select class="form-control" name="event_manager">
+	                        <option value="<%=event_creator %>">Me</option>
+							<% for (manager of managerlist) { %>
+	                        <option value=<%=manager.user_id %>><%=manager.user_name %></option>
+							<% } %>
+	                      </select>
+	                    </div>
+	                  </div>
+				   <% } else { %>
+   				  	 <input name="event_manager" type="hidden" value="<%=event_creator %>">
+				   <% } %>
 	                  <div class="form-group">
 	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Your events name?</label>
 	                    <div class="col-sm-8">

@@ -7,7 +7,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>                        
       </button>
-      <a class="navbar-brand" href="#">Stage Squirrel</a>
+      <a class="navbar-brand" href="#"><img src="/images/sq-logo.png" style="height: 45px; transform: scale(-1,1); display: inline; margin-top: -13px; vertical-align: top; filter: brightness(0.6);"> Stage Squirrel</a>
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
@@ -26,8 +26,8 @@
 			<li <%= nav == 'manage' ? 'class=active' : '' %>><a href="manage">Manage Events</a></li>
         <% } %>
 		<% if (user.isCreator == 1) { %>
-			<li <%= nav == 'create' ? 'class=active' : '' %>><a href="create">Create Survey</a></li>
-			<li <%= nav == 'surveys' ? 'class=active' : '' %>><a href="surveys">My Surveys</a></li>
+			<li <%= nav == 'create' ? 'class=active' : '' %>><a href="create"><span class="glyphicon glyphicon-plus"></span> Create Survey</a></li>
+			<li <%= nav == 'surveys' ? 'class=active' : '' %>><a href="surveys"><span class="glyphicon glyphicon-list"></span> My Surveys</a></li>
         <% } %>
 		<% for (var role of user.user_roles) { 
 			console.log(role);
@@ -42,7 +42,7 @@
       </ul>
       <ul class="nav navbar-nav navbar-right">
 		<li><a><%= user.currentConvention.convention_name %></a></li>
-		<% if (user.isAdmin == 1) { %>
+		<% if (user.isAdmin == 1) { %>   
 		<li <%= nav == 'admin' ? 'class=active' : '' %>><a href="admin"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
         <% } %>
 		<li <%= nav == 'profile' ? 'class=active' : '' %>><a href="profile"><span class="glyphicon glyphicon-user"></span> <%= user.user_name %></a></li>

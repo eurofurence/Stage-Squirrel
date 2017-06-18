@@ -75,6 +75,8 @@ module.exports = function(passport) {
     // =========================================================================
     // we are using named strategies since we have one for login and one for signup
 	// by default, if there was no name, it would just be called 'local'
+    
+    var next_event_query = "SELECT * FROM stagesquirrel.sq_conventions WHERE convention_id=(SELECT IFNULL((SELECT convention_id FROM stagesquirrel.sq_conventions where date_to > DATE_ADD(curdate(),INTERVAL -1 WEEK) order by date_from ASC limit 1), (SELECT convention_id FROM stagesquirrel.sq_conventions where date_from <= curdate() order by date_from DESC limit 1)))";
 
     passport.use('local-signup', new LocalStrategy({
         // by default, local strategy uses username and password, we will override with email
@@ -129,7 +131,7 @@ module.exports = function(passport) {
 								newUserMysql.user_roles.push(rolerows[0]);
 							}); 
 						}
-						connection.query("SELECT * FROM stagesquirrel.sq_conventions where date_from > now() order by date_from ASC limit 1",function(err2,conrows) {
+						connection.query(next_event_query, function(err2,conrows) {
 							newUserMysql.currentConvention = conrows[0];
 							return done(null, newUserMysql);
 						}); 
@@ -195,6 +197,7 @@ module.exports = function(passport) {
 	   						console.log("IP " + req.connection.remoteAddress + " used " + try_count + "x wrong credentials.");
 	   						if (try_count >= (cfg["MAX_LOGIN_ATTEMPTS"].value) && banned == null) {
 	   							console.log("IP " + req.connection.remoteAddress + " will now be banned for " + cfg["TIME_IP_BAN"].value + " min.");
+								
 	   							banned = new Date();
 	   							banned.setTime(banned.getTime() + 1000 * 60 * cfg["TIME_IP_BAN"].value);
 	   							strBanned = "', attempt_banned_until = '" + banned.toLocaleString();
@@ -210,9 +213,9 @@ module.exports = function(passport) {
 				    if (rows[0].user_active == 1) connection.query("UPDATE sq_user SET user_last_login = '" + now.toLocaleString() + "' WHERE user_id = " + rows[0].user_id);
 					
 					rows[0].user_roles = [];
-												console.log("SELECT roles_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id);
+					console.log("SELECT roles_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id);
 					connection.query("SELECT role_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id,function(err2,maprolerows) {	
-						connection.query("SELECT * FROM stagesquirrel.sq_conventions where date_from > now() order by date_from ASC limit 1",function(err2,conrows) {
+						connection.query(next_event_query,function(err2,conrows) {
 							rows[0].currentConvention = conrows[0];				
 							for(var i = 0; i < maprolerows.length; i++) {	
 								connection.query("select * from sq_role where role_id = '"+maprolerows[i].role_id+"'",function(err2,rolerows) {

@@ -196,10 +196,10 @@
 					} else { 
 						fields[i].readOnly = true;
 					} 
-					if (fields[i].name.substr(3,3) == "lab") { fields[i].value = stageboxcontent[version][fields[i].name.substr(7)].stagebox_label; }
-					if (fields[i].name.substr(3,3) == "sub") { fields[i].value = stageboxcontent[version][fields[i].name.substr(7)].stagebox_subcore; }
-					if (fields[i].name.substr(3,3) == "48v") { fields[i].value = stageboxcontent[version][fields[i].name.substr(7)].stagebox_48v; }
-					if (fields[i].name.substr(3,3) == "via") { fields[i].value = stageboxcontent[version][fields[i].name.substr(7)].stagebox_viadi; }
+					if (fields[i].name.substr(3,3) == "lab") { fields[i].value = stageboxcontent[version][i].stagebox_label; }
+					if (fields[i].name.substr(3,3) == "sub") { fields[i].value = stageboxcontent[version][i].stagebox_subcore; }
+					if (fields[i].name.substr(3,3) == "48v") { fields[i].value = stageboxcontent[version][i].stagebox_48v; }
+					if (fields[i].name.substr(3,3) == "via") { fields[i].value = stageboxcontent[version][i].stagebox_viadi; }
 					
 				}
 			}
@@ -739,8 +739,8 @@
                   				   Affected roles:
                 			     </div>
                 				<div class="col-sm-2">
-								<div class="checkbox">
-                  				   <label><input type="checkbox" value="0" name="commentrole">General</label>
+								<div class="radio">
+                  				   <label><input type="radio" value="0" name="commentrole">General</label>
                 			     </div>
 							</div>
 							<% for (role of roles) { %>
@@ -754,8 +754,8 @@
                 				<div class="col-sm-2">
                 			     </div>
                 				<div class="col-sm-2">
-								<div class="checkbox">
-                  				   <label><input type="checkbox" value="<%- role.role_id %>" name="commentrole"<%- checked ? 'checked' : '' %>><%= role.role_title %></label>
+								<div class="radio">
+                  				   <label><input type="radio" value="<%- role.role_id %>" name="commentrole"<%- checked ? 'checked' : '' %>><%= role.role_title %></label>
 						   </div>
                 			     </div>
 							<% } } %>

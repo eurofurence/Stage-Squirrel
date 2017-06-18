@@ -1,5 +1,5 @@
-CREATE DATABASE  IF NOT EXISTS `stagesquirrel`;
-USE `stagesquirrel`;
+CREATE DATABASE  IF NOT EXISTS `stagesquirrel2`;
+USE `stagesquirrel2`;
 
 --
 -- Table structure for table `sq_configuration`
@@ -277,8 +277,8 @@ CREATE TABLE `sq_stage` (
   `stage_id` int(11) NOT NULL AUTO_INCREMENT,
   `stage_name` varchar(60) DEFAULT NULL,
   `stage_description` varchar(255) NOT NULL,
-  `stage_from` datetime DEFAULT NULL,
-  `stage_to` datetime DEFAULT NULL,
+  `stage_from` datetime NOT NULL,
+  `stage_to` datetime NOT NULL,
   PRIMARY KEY (`stage_id`),
   UNIQUE KEY `stage_id_UNIQUE` (`stage_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -312,19 +312,12 @@ INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`config
 INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`configuration_key`,`configuration_value`) VALUES (3,'Time till server forgets login attempts by ip','TIME_IP_ATTEMPT','30');
 INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`configuration_key`,`configuration_value`) VALUES (4,'Authentification type (0 = No confirmation, 1 = Admin must confirm)','AUTH_CONFIRMATION','1');
 INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`configuration_key`,`configuration_value`) VALUES (5,'Enable DoubleOptIn when signup (0 = disable, 1 = enable)','AUTH_DOUBLEOPTIN','1');
-INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`configuration_key`,`configuration_value`) VALUES (6,'Sets Telegram Bot API Token. Setting to nothing deactivates the bot.','TELEGRAM_API_TOKEN','282593926:AAHsUpVYPn052a7AAJvzuRbCEiUn3pqIHzM');
+INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`configuration_key`,`configuration_value`) VALUES (6,'Sets Telegram Bot API Token. Setting to nothing deactivates the bot.','TELEGRAM_API_TOKEN','');
 
 INSERT INTO `sq_conventions` (`convention_id`,`template_id`,`convention_name`,`convention_description`,`date_from`,`date_to`) VALUES (1,1,'Eurofurence 23','Convention for Eurofurence 2017 with theme Ancient Egypt','2017-08-16','2017-08-20');
 
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (1,'Administrator','can change global settings and edit users',1,1,0,1,1,NULL,0);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (2,'Stage Manager','can confirm event requests',0,1,0,1,1,NULL,0);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (3,'Event Manager','can create events',0,0,0,1,1,NULL,0);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (4,'Member','can only view the application',0,0,1,1,0,NULL,0);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (10,'Audio','is member of the audio team',0,0,0,1,0,'music',1);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (11,'Video','is member of the video team',0,0,0,1,0,'facetime-video',0);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (12,'Light','is member of the light team',0,0,0,1,0,'lamp',0);
-INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (13,'Backstage','is member of the backstage team',0,0,0,1,0,'wrench',0);
 
+*/
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (1,1,NULL,NULL,1,'Important contacts on your end','Anyone we need to know about?',NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (2,1,1,NULL,8,'Function;Nick;Mobile(int. notation);E-Mail',NULL,NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (3,1,2,NULL,3,NULL,'Event-Manager',NULL);

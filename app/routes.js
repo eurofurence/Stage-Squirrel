@@ -29,7 +29,9 @@ handleDisconnect();
 var telegram = require('./telegram.js');
 var telegramintegration = 'false';
 if (typeof telegram != 'undefined') {
-    telegramintegration = 'true';
+	connection.query("SELECT configuration_value FROM sq_configuration WHERE configuration_key = 'TELEGRAM_API_TOKEN'", function (err, result) {
+		if (result[0].configuration_value) { telegramintegration = 'true'; }
+	});
 } 
 
 // TimeConverter
@@ -53,7 +55,7 @@ function getTimeJStoSQL(timeString) {
 function notificationService(typeId, eventId, versionId, senderId, roleId) {
 	var now = new Date();
 	var params = [typeId, eventId, versionId, senderId, roleId, getTimeJStoSQL(now)];
-	connection.query("INSERT INTO sq_notifications (`type_id`, `event_id`, `convention_id`, `version_id`, `sender_id`, `role_id`, `created_on`) VALUES (?, ?, 1, ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); }});
+	connection.query("INSERT INTO sq_notifications (`type_id`, `event_id`, `convention_id`, `version_id`, `sender_id`, `role_id`, `created_on`) VALUES (?, ?, (SELECT convention_id from sq_events where sq_events.event_id = 25), ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); }});
 	if (telegramintegration == 'true') {
 		telegram.notify(typeId, eventId, versionId, senderId, roleId);
 	}
@@ -133,7 +135,7 @@ module.exports = function(app, passport) {
 			connection.query('SELECT * from sq_user', function (err, userrows) {
 				connection.query('SELECT * FROM sq_stage', function (err, stagerows) {
 					connection.query('SELECT * from sq_role', function (err, rolerows) {
-						connection.query('SELECT * from sq_notifications order by created_on desc limit 20', function (err, notificationrows) {
+						connection.query('SELECT * from sq_notifications where convention_id = ? order by created_on desc limit 20', req.user.currentConvention.convention_id, function (err, notificationrows) {
 							res.render('home.ejs', {
 								notifications: notificationrows,
 								events: eventrows,
@@ -247,6 +249,7 @@ module.exports = function(app, passport) {
 				if (req.body.activation != undefined) {
 					console.log("UPDATE sq_user SET user_active = '1' WHERE `user_id` = '" + req.body.activation + "'");
 					connection.query("UPDATE sq_user SET user_active = '1' WHERE `user_id` = '" + req.body.activation + "'");
+					notificationService(14, null, null, req.body.activation, null);
 				}
 				if (req.body.deactivation != undefined) {
 					console.log("UPDATE sq_user SET user_active = '0' WHERE `user_id` = '" + req.body.deactivation + "'");
@@ -267,10 +270,10 @@ module.exports = function(app, passport) {
 		console.log("get version:" + req.query.version);
 		if (req.user.isCreator) {
 			connection.query('SELECT * from sq_configuration', function (err, cfgrows) {
-				connection.query('SELECT * from sq_form_elements where template_id = (SELECT template_id FROM sq_conventions WHERE convention_id = 1);', function (err, elementrows) {
+				connection.query('SELECT * from sq_form_elements where template_id = (SELECT template_id FROM sq_conventions WHERE convention_id = ?);', req.user.currentConvention.convention_id, function (err, elementrows) {
 					connection.query('SELECT * from sq_role where role_is_admin = 0 and role_is_manager = 0 and role_is_default = 0 and role_is_active = 1', function (err, rolesrows) {
-						connection.query('SELECT * from sq_conventions where convention_id = 1', function (err, conventionrows) {
-							connection.query('SELECT sq_stage.stage_id, sq_stage.stage_name, sq_stage.stage_description FROM sq_map_convention_to_stage join sq_stage on sq_map_convention_to_stage.stage_id = sq_stage.stage_id WHERE convention_id = ?', 1, function (err, stagerows) {
+						connection.query('SELECT * from sq_conventions where convention_id = ?', req.user.currentConvention.convention_id, function (err, conventionrows) {
+							connection.query('SELECT sq_stage.stage_id, sq_stage.stage_name, sq_stage.stage_description FROM sq_map_convention_to_stage join sq_stage on sq_map_convention_to_stage.stage_id = sq_stage.stage_id WHERE convention_id = ?', req.user.currentConvention.convention_id, function (err, stagerows) {
 								connection.query('SELECT * from sq_events where event_id = ?', req.query.id, function (err, eventrows) {
 									console.log("-----");
 									console.log(eventrows);
@@ -288,23 +291,26 @@ module.exports = function(app, passport) {
 									connection.query('SELECT * from sq_event_details where event_id = ' + req.query.id + ' AND event_version = ?', version, function (err, eventdetailrows) {
 										connection.query('SELECT * from sq_event_customs where event_id = ? AND version = ?', [req.query.id, version], function (err, customrows) {
 											connection.query('SELECT creator_id from sq_event_details where event_id = ? AND event_version = 1', req.query.id, function (err, creatorresult) {
-												if (typeof eventrows == 'undefined' || creatorresult[0].creator_id == req.user.user_id || req.user.isManager) {
-													res.render('create.ejs', {
-														nav: 'create',
-									            			user: req.user, 
-														stages: stagerows,
-												    		elements: elementrows, 
-														roles: rolesrows,
-														convention: conventionrows,
-												    		configurations: cfgrows,
-														event: eventdetailrows,
-														eventinfo: eventrows,
-														customfields: customrows,
-														creator: creatorresult
-													});	
-												} else {
-													console.log("User has no rights to access event.")
-												}
+												connection.query('SELECT * FROM sq_user join sq_map_user_to_role on sq_user.user_id = sq_map_user_to_role.user_id join sq_role on sq_map_user_to_role.role_id = sq_role.role_id where sq_role.role_is_creator = 1 and sq_user.user_active = 1 GROUP BY sq_user.user_id', function (err, managerrows) {
+													if (typeof eventrows == 'undefined' || creatorresult[0].creator_id == req.user.user_id || req.user.isManager) {
+														res.render('create.ejs', {
+															nav: 'create',
+															user: req.user, 
+															stages: stagerows,
+															elements: elementrows, 
+															roles: rolesrows,
+															convention: conventionrows,
+															configurations: cfgrows,
+															event: eventdetailrows,
+															eventinfo: eventrows,
+															customfields: customrows,
+															creator: creatorresult,
+															managerlist: managerrows
+														});	
+													} else {
+														console.log("User has no rights to access event.");
+													}
+												});
 											});
 										});
 									});
@@ -337,11 +343,11 @@ module.exports = function(app, passport) {
 	 	    } else {
 				var version = 1;
 				if (event_id == 0) {
-					connection.query("INSERT INTO sq_events (`event_id`, `convention_id`, `event_max_version`, `event_confirmed_version_manager`, `event_confirmed_version_creator`) VALUES (0, ?, 1, 0, 1)", 1, function(err,state){ if(err) { console.log(err); } else {
+					connection.query("INSERT INTO sq_events (`event_id`, `convention_id`, `event_max_version`, `event_confirmed_version_manager`, `event_confirmed_version_creator`) VALUES (0, ?, 1, 0, 1)", req.user.currentConvention.convention_id, function(err,state){ if(err) { console.log(err); } else {
 						event_id = state.insertId;
 						notificationService(1, event_id, 1, req.user.user_id, null);					
 						/* completely redundant start */
-						var params = [event_id, req.body.stage_id, req.user.user_id, req.body.event_name, req.body.event_desc, req.body.event_expl, req.body.event_type.toString().replace(',',';'), req.body.event_date, req.body.time_pre, req.body.time_post, req.body.time_dur, version];					
+						var params = [event_id, req.body.stage_id, req.body.event_manager, req.body.event_name, req.body.event_desc, req.body.event_expl, req.body.event_type.toString().replace(',',';'), req.body.event_date, req.body.time_pre, req.body.time_post, req.body.time_dur, version];					
 						connection.query("INSERT INTO sq_event_details (`event_id`, `stage_id`, `creator_id`, `event_title`, `event_description`, `event_explaination`, `event_categories`, `event_day`, `event_created`, `event_time_pre`, `event_time_post`, `event_time_dur`, `event_version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); } else {
 							for(var key in req.body) {
 						  	   	if(req.body.hasOwnProperty(key) && key.startsWith("custom")){
@@ -543,6 +549,7 @@ module.exports = function(app, passport) {
 			connection.query("UPDATE sq_map_riders_to_roles SET confirmed_version_responsible = ?, WHERE event_id = ? AND role_id = ? AND version = ?", params, function(err,state){ if(err) { console.log(err); } } );
 			
 			console.log(req.body);
+			notificationService(7, req.body.event_id, req.body.version, req.user.user_id, req.body.role_id);
 			res.redirect('/rider?id=' + req.body.event_id);
 		}
 		if (req.body.actionType == "accept_manager") {
@@ -550,12 +557,15 @@ module.exports = function(app, passport) {
 			connection.query("UPDATE sq_map_riders_to_roles SET confirmed_version_manager = ?, WHERE event_id = ? AND role_id = ? AND version = ?", params, function(err,state){ if(err) { console.log(err); } } );
 			
 			console.log(req.body);
+			notificationService(8, req.body.event_id, req.body.version, req.user.user_id, req.body.role_id);
 			res.redirect('/rider?id=' + req.body.event_id);
 		}
 		if (req.body.actionType == "editGeneral") {
 			params = [req.body.creator_id, req.body.eventmgr_mobile, req.user.user_id, req.body.stagemgr_mobile, req.body.crew_lxd, req.body.crew_lx1, req.body.crew_lx2, req.body.crew_a1, req.body.crew_a2, req.body.crew_a3, req.body.crew_stagedecktech, req.body.crew_bananassetup, req.body.crew_bananasshow, req.body.crew_bananasbreakdown, getTimeJStoSQL(req.body.starttime), req.body.event_id];
 			connection.query("UPDATE sq_riders SET creator_id = ?, creator_mobile = ?, manager_id = ?, manager_mobile = ?, crew_lxd = ?, crew_lx1 = ?, crew_lx2 = ?, crew_a1 = ?, crew_a2 = ?, crew_a3 = ?, crew_stagedecktech = ?, crew_bananassetup = ?, crew_bananasshow = ?, crew_bananasbreakdown = ?, startdate = ? WHERE event_id = ?", params, function(err,state){ if(err) { console.log(err); } } );
 			console.log(req.body);
+
+			notificationService(11, req.body.event_id, null, req.user.user_id, null);
 			res.redirect('/rider?id=' + req.body.event_id);
 		}
 		if (req.body.actionType == "editRole") {
@@ -563,6 +573,11 @@ module.exports = function(app, passport) {
 			var conf_res = req.user.user_id == req.body.responsible_id ? 1 : 0;
 			params = [req.body.event_id, req.body.role_id, req.body.role_content, req.body.responsible_id, conf_mgr, conf_res, (parseInt(req.body.version) + 1)];
 			connection.query("INSERT INTO sq_map_riders_to_roles (event_id, role_id, content, responsible_id, confirmed_version_manager, confirmed_version_responsible, version) VALUES (?, ?, ?, ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); } 
+				if (req.user.isManager) {
+					notificationService(10, req.body.event_id, (parseInt(req.body.version) + 1), req.user.user_id, req.body.role_id);
+				} else {
+					notificationService(9, req.body.event_id, (parseInt(req.body.version) + 1), req.user.user_id, req.body.role_id);
+				}
 				if (req.body.hasStagebox) {
 					for (var i = 0; i < req.body.sb_cha.length; i++) {
 						params = [req.body.event_id, (parseInt(req.body.version) + 1), req.body.sb_cha[i], req.body.sb_lab[i], req.body.sb_sub[i], req.body.sb_48v[i], req.body.sb_via[i]];
@@ -578,6 +593,7 @@ module.exports = function(app, passport) {
 			
 			params = [req.body.event_id, req.body.creator_id, req.body.eventmgr_mobile, req.user.user_id, req.body.stagemgr_mobile, req.body.crew_lxd, req.body.crew_lx1, req.body.crew_lx2, req.body.crew_a1, req.body.crew_a2, req.body.crew_a3, req.body.crew_stagedecktech, req.body.crew_bananassetup, req.body.crew_bananasshow, req.body.crew_bananasbreakdown, getTimeJStoSQL(req.body.starttime)];
 			connection.query("INSERT INTO sq_riders (event_id, creator_id, creator_mobile, manager_id, manager_mobile, crew_lxd, crew_lx1, crew_lx2, crew_a1, crew_a2, crew_a3, crew_stagedecktech, crew_bananassetup, crew_bananasshow, crew_bananasbreakdown, startdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); } 
+				notificationService(6, req.body.event_id, 1, req.user.user_id, null);
 				for (var i = 0; i < req.body.role_id.length; i++) {
 					params = [req.body.event_id, req.body.role_id[i], req.body.role_content[i], req.body.responsible_id[i], 1, 0, 1];
 					connection.query("INSERT INTO sq_map_riders_to_roles (event_id, role_id, content, responsible_id, confirmed_version_manager, confirmed_version_responsible, version) VALUES (?, ?, ?, ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); } 

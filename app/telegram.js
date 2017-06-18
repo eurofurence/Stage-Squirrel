@@ -270,16 +270,123 @@ module.exports = {
 				});
 			}
 			
+			// 6 Stage Manager creates Rider / inform Responsible / inform Event Manager with time
+			else if (typeId == 6) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					connection.query('SELECT * FROM sq_map_riders_to_roles WHERE event_id = ? AND version = ?', [eventId, versionId], function (err, rolerows) {
+						for (role of rolerows) {
+							if (userdb[role.responsible_id].user_telegram_id != null && userdb[role.responsible_id].user_telegram_linked == 1 && userdb[role.responsible_id].user_telegram_active == 1) {
+							telegram.sendMessage(userdb[role.responsible_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* created the Stage Rider for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou are responsible for the role " + roledb[role.role_id].role_title + ". Please confirm your role under [this link](http://www." + base_url + "/rider?id=" + eventId + "#" + roledb[role.role_id].role_title.toLowerCase() + ").", { parse_mode: "markdown" });
+							}						
+						}
+						connection.query('SELECT * FROM sq_riders WHERE event_id = ?', eventId, function (err, riderrows) {
+							var startdate = riderrows[0].startdate;
+							if (userdb[riderrows[0].manager_id].user_telegram_id != null && userdb[riderrows[0].manager_id].user_telegram_linked == 1 && userdb[riderrows[0].manager_id].user_telegram_active == 1) {
+								telegram.sendMessage(userdb[riderrows[0].manager_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* created the Stage Rider for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\n The event will start at " + startdate.getHours() + ":" + startdate.getMinutes() + ".", { parse_mode: "markdown" });
+							}	
+						});
+					});
+				});
+			}
 			
-				// 6 Stage Manager creates Rider / inform Responsible / inform Event Manager with time
-				// 7 Responsible confirms Rider / inform all
-				// 8 Stage Manager confirmy Rider / inform all
-				// 9 Responsible change Rider / inform Stage Manager
-				// 10 Stage Manager change Role of Rider / inform role
-				// 11 Stage Manager change General Roder / inform all
-				// 12 anybody writes commentary / inform roles
-				// 13 User registers and waits for confirmation / inform admin
-				// 14 IP Ban / inform admin
+			// 7 Responsible confirms Rider / inform Role
+			else if (typeId == 7) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					for (one_user of userrows) {
+						for (one_role of userdb[one_user.user_id].roles) {
+							if (one_role.role_id == roleId && one_user.user_id != senderId) {
+								telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "Responsible for " + roledb[roleId].role_title + " *" + userdb[senderId].user_name + "* confirmed version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Rider under [this link](http://www." + base_url + "/rider?id=" + eventId + "#" + roledb[roleId].role_title.toLowerCase() + ").", { parse_mode: "markdown" });	
+							}
+						}
+					}
+				});
+			}
+			
+			// 8 Stage Manager confirms Rider / inform all
+			else if (typeId == 8) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					connection.query('SELECT * FROM sq_map_riders_to_roles WHERE event_id = ? AND version = ?', [eventId, versionId], function (err, rolerows) {
+						var confirmed = true;
+						for (role of rolerows) {
+							if (role.confirmed_version_responsible == 0) {
+								confirmed = false;
+							}
+						}
+						if (confirmed) {
+							for (one_user of userrows) {
+								if (!userdb[one_user.user_id].isCreator && one_user.user_id != senderId) {
+									telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* confirmed version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Rider under [this link](http://www." + base_url + "/rider?id=" + eventId + ").", { parse_mode: "markdown" });
+								}
+							}
+						}
+					});	
+				});
+			}
+			
+			// 9 Responsible change Rider / inform Stage Manager
+			else if (typeId == 9) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					for (one_user of userrows) {
+						if (userdb[one_user.user_id].isManager) {
+							telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "Responsible for " + roledb[roleId].role_title + " *" + userdb[senderId].user_name + "* changed the Stage Rider to version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nPlease confirm the changes of the Stage Rider under [this link](http://www." + base_url + "/rider?id=" + eventId + "#" + roledb[roleId].role_title.toLowerCase() +  ").", { parse_mode: "markdown" });
+						}
+					}
+				});
+			}
+			
+			// 10 Stage Manager change Role of Rider / inform role
+			else if (typeId == 10) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					for (one_user of userrows) {
+						for (one_role of userdb[one_user.user_id].roles) {
+							if (one_role.role_id == roleId && one_user.user_id != senderId) {
+								telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* changed information for role " + roledb[roleId].role_title + " to version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Rider under [this link](http://www." + base_url + "/rider?id=" + eventId + "#" + roledb[roleId].role_title.toLowerCase() + ").", { parse_mode: "markdown" });	
+							}
+						}
+					}
+				});
+			}
+			
+			// 11 Stage Manager change General Rider / inform all
+			else if (typeId == 11) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					for (one_user of userrows) {
+						if (!userdb[one_user.user_id].isCreator && one_user.user_id != senderId) {
+							telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* changed information for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Rider under [this link](http://www." + base_url + "/rider?id=" + eventId + "#" + roledb[roleId].role_title.toLowerCase() + ").", { parse_mode: "markdown" });	
+						}
+					}
+				});
+			}
+			
+			// 12 anybody writes commentary / inform roles
+			else if (typeId == 12) {
+				connection.query('SELECT * FROM sq_events join sq_event_details on sq_events.event_id = sq_event_details.event_id WHERE sq_events.event_id = ? and sq_event_details.event_version = sq_events.event_max_version', eventId, function (err, eventrows) {
+					telegram.sendMessage(userdb[eventrows[0].creator_id].user_telegram_id, "Manager *" + userdb[senderId].user_name + "* confirmed version " + versionId + " for event \n``` " + eventId + ": " + eventrows[0].event_title + " ```\nYou can find the Stage Survey under [this link](http://www." + base_url + "/create?id=" + eventId + ").", { parse_mode: "markdown" });
+				});
+			}
+			
+			// 13 User registers  / inform admin
+			else if (typeId == 13) {
+				for (one_user of userrows) {
+					if (userdb[one_user.user_id].isAdmin) {
+						telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "The new user *" + userdb[senderId].user_name + "* registered recently and waits for confirmation. You can activate users in the Admin Control Panel under [this link](http://www." + base_url + "/admin).", { parse_mode: "markdown" });
+					}
+				}
+			}
+			
+			// 14 User account is confirmed
+			else if (typeId == 14) {
+				// we will not send a message for every registered user.
+			}
+			
+			// 15 IP Ban / inform admin
+			else if (typeId == 15) {
+				for (one_user of userrows) {
+					if (userdb[one_user.user_id].isAdmin) {
+						telegram.sendMessage(userdb[one_user.user_id].user_telegram_id, "Stage Squirrel registered a new ip ban. You can get further information in hte log file.", { parse_mode: "markdown" });
+					}
+				}
+			}
 		});
 	},
 	readToken: function(newToken) {
