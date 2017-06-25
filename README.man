@@ -10,25 +10,54 @@ _\ \ || (_| | (_| |  __/\ \ (_| | |_| | | |  | | |  __/ |
                                                      
 		  		   
 Installation Manual for Stage Squirrel
+================================================================================
+1.  Execute initial_load.sql to create database 'stagesquirrel' 
+    and fill important data.
+2.  Opt. create new SQL user with access to the database, giving following 
+    rights: select, delete, insert, update.
+3.  Make sure both npm and node are present in your $PATH variable 
+4.  Type 'npm install' in Stage Squirrel root will install all dependencies 
+    given by package.json
+5.  Open config/config.js to change settings:
+        - you can change the sessionsecret
+        - insert your database user
+        - Setup baseurl to match the URL users will use to access this 
+          Stage Squirrel installation
+6.  Setup ip' and 'port' in server.js according to your needs 
+    (by default, Stage Squirrel will listen on interface 127.0.0.1 and port 8500)
+7.  Open config/startup.conf and make changes where applicable
+8.  In Stage Squirrel root, type './stagesquirrel test-config' to test your 
+    startup-configuration
+9.  Opt. open config/logrotate.conf and set the first line to match the 
+    absolute path to your logfile (as configured in config/startup.conf)
+        - By default, logfiles will be rotated daily and held for as long as 
+          90 days. Configure this to your needs.
+10. Edit the following line to point to your config/logrotate.conf and add it
+    to your local crontab (usually by running crontab -e):
 
-1. Execute initial_load.sql to create database 'stagesquirrel' and fill important data.
-2. Opt. create new SQL user with access to the database, giving following rights: select, delete, insert, update.
-3. Make sure both npm and node are present in your $PATH variable 
-4. Type 'npm install' in Stage Squirrel root will install all dependencies given by package.json
-5. Open config/config.js to change settings:
-	- you can change the sessionsecret
-	- insert your database user
-	- Setup baseurl to match the URL users will use to access this Stage Squirrel installation
-6. Setup ip' and 'port' in server.js according to your needs (by default, Stage Squirrel wil listen on interface 127.0.0.1 and port 8500)
-7. In Stage Squirrel root, type 'npm start' to bring up your Stage Squirrel installation
-8. Register your admin account (choose whatever data)
-9. We should expect your registered user is the first one ans has the ID 1. So execute the following statements:
-	// activates the user
+	# This will rotate the console.log  daily at 06:00, compress rotated logs and keep them for 90 days
+	0 6 * * * /usr/sbin/logrotate -s /dev/null /home/stage/Stage-Squirrel/config/logrotate.conf > /dev/null 2>&1 
+
+        - If this doesn't work, check if you distribution placed logrotate in 
+          another path or no longer comes with it. This configuration is 
+          intended for usage without elevated privileges. If you are the
+          system maintainer, feel free to alter this to your needs. 
+
+11. Bring up your Stage Squirrel installation by typing ./stagesquirrel start.
+12. Open your browser and open your configured URL 
+13. Register your admin account (choose whatever data)
+14. We should expect your registered user is the first one and has the ID 1. 
+    So execute the following statements:
+
+	-- activates the user
 	UPDATE `stagesquirrel`.`sq_user` SET `user_active`= '1' WHERE `user_id` = '1';
 	
-	// deletes all other rights and grants admin rights to user
+	-- deletes all other rights and grants admin rights to user
 	DELETE FROM `stagesquirrel`.`sq_map_user_to_role` WHERE `user_id` = '1';
 	INSERT INTO `stagesquirrel`.`sq_map_user_to_role` (`user_id`, `role_id`) VALUES ('1', '1');
 	
-10. Login with your account, goto Settings to activate other accounts
-11. Profit
+15. Login with your account, goto Settings to activate other accounts
+16. Profit
+
+For more options on jobcontrol, type ./stagesquirrel help 
+This script can be used as an init script
