@@ -51,7 +51,7 @@ module.exports = function(passport) {
 		connection.query("select * from sq_user where user_id = "+id,function(err,rows){
 			rows[0].user_roles = [];
 			connection.query("SELECT role_id FROM sq_map_user_to_role WHERE user_id = " + id,function(err2,maprolerows) {	
-				connection.query("SELECT * FROM stagesquirrel.sq_conventions where date_from > now() order by date_from ASC limit 1",function(err2,conrows) {
+				connection.query("SELECT * FROM sq_conventions where date_from > now() order by date_from ASC limit 1",function(err2,conrows) {
 					rows[0].currentConvention = conrows[0];
 					connection.query("select * from sq_role",function(err2,rolerows) {				
 						for(var i = 0; i < maprolerows.length; i++) {				
@@ -77,7 +77,7 @@ module.exports = function(passport) {
     // we are using named strategies since we have one for login and one for signup
 	// by default, if there was no name, it would just be called 'local'
     
-    var next_event_query = "SELECT * FROM stagesquirrel.sq_conventions WHERE convention_id=(SELECT IFNULL((SELECT convention_id FROM stagesquirrel.sq_conventions where date_to > DATE_ADD(curdate(),INTERVAL -1 WEEK) order by date_from ASC limit 1), (SELECT convention_id FROM stagesquirrel.sq_conventions where date_from <= curdate() order by date_from DESC limit 1)))";
+    var next_event_query = "SELECT * FROM sq_conventions WHERE convention_id=(SELECT IFNULL((SELECT convention_id FROM sq_conventions where date_to > DATE_ADD(curdate(),INTERVAL -1 WEEK) order by date_from ASC limit 1), (SELECT convention_id FROM sq_conventions where date_from <= curdate() order by date_from DESC limit 1)))";
 
     passport.use('local-signup', new LocalStrategy({
         // by default, local strategy uses username and password, we will override with email
@@ -214,7 +214,7 @@ module.exports = function(passport) {
 				    if (rows[0].user_active == 1) connection.query("UPDATE sq_user SET user_last_login = '" + util.getTimeJStoSQL(now) + "' WHERE user_id = " + rows[0].user_id);
 					
 					rows[0].user_roles = [];
-					console.log("SELECT roles_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id);
+					console.log("SELECT role_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id);
 					connection.query("SELECT role_id FROM sq_map_user_to_role WHERE user_id = " + rows[0].user_id,function(err2,maprolerows) {	
 						connection.query(next_event_query,function(err2,conrows) {
 							rows[0].currentConvention = conrows[0];				
