@@ -1,6 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `stagesquirrel`;
-USE `stagesquirrel`;
-
 --
 -- Table structure for table `sq_configuration`
 --
