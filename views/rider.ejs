@@ -175,15 +175,15 @@
 			}
 			
 			if (version == max_version<%- user.isManager ? '' : '&& userId == tabcontent[role][version].responsible_id' %>) { 
-				document.getElementById('save_' + role).disabled = false; 
+				document.getElementById('save_' + role).readOnly = false; 
 				document.getElementById('content_' + role).readOnly = false;
-				<% if (user.isManager) { %>document.getElementById('responsible_' + role).disabled = false; <% } %>
+				<% if (user.isManager) { %>document.getElementById('responsible_' + role).readOnly = false; <% } %>
 				if (document.getElementById('manager_accept_' + role) && tabcontent[role][version].confirmed_version_manager == 0) { document.getElementById('manager_accept_' + role).style.display = 'inline-block'; } 
 				if (document.getElementById('responsible_accept_' + role) && tabcontent[role][version].responsible_version_manager == 0) { document.getElementById('responsible_accept_' + role).style.display = 'inline-block'; } 
 			} else { 
-				document.getElementById('save_' + role).disabled = true; 
+				document.getElementById('save_' + role).readOnly = true; 
 				document.getElementById('content_' + role).readOnly = true;
-				document.getElementById('responsible_' + role).disabled = true;
+				document.getElementById('responsible_' + role).readOnly = true;
 				if (document.getElementById('manager_accept_' + role)) { document.getElementById('manager_accept_' + role).style.display = 'none'; }
 				if (document.getElementById('responsible_accept_' + role)) { document.getElementById('responsible_accept_' + role).style.display = 'none'; }
 			} 
@@ -538,7 +538,7 @@
                     				   <strong>Responsible:</strong>
                   			     </div>
                   				<div class="col-sm-8">
-								   <select class="form-control" name="responsible_id" value="<%= create ? 0 : tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id %>" id="responsible_<%= role.role_title.toLowerCase() %>"<%= user.isManager ? '' : ' disabled' %><%= create ? ' form=generalform' : '' %>>
+								   <select class="form-control" name="responsible_id" value="<%= create ? 0 : tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id %>" id="responsible_<%= role.role_title.toLowerCase() %>"<%= user.isManager ? '' : ' readonly' %><%= create ? ' form=generalform' : '' %>>
 								<% for (roleuser of roledb[role.role_id].member) { %>
                     				   <option value="<%= roleuser.user_id %>" <%- !create && roleuser.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id ? 'selected' : '0' %>><%= roleuser.user_name %></option>
 								<% } %>

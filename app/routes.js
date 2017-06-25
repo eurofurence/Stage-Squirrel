@@ -38,8 +38,8 @@ if (typeof telegram != 'undefined') {
 // NotificationService
 function notificationService(typeId, eventId, versionId, senderId, roleId) {
 	var now = new Date();
-	var params = [typeId, eventId, versionId, senderId, roleId, util.getTimeJStoSQL(now)];
-	connection.query("INSERT INTO sq_notifications (`type_id`, `event_id`, `convention_id`, `version_id`, `sender_id`, `role_id`, `created_on`) VALUES (?, ?, (SELECT convention_id from sq_events where sq_events.event_id = 25), ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); }});
+	var params = [typeId, eventId, eventId, versionId, senderId, roleId, util.getTimeJStoSQL(now)];
+	connection.query("INSERT INTO sq_notifications (`type_id`, `event_id`, `convention_id`, `version_id`, `sender_id`, `role_id`, `created_on`) VALUES (?, ?, (SELECT convention_id from sq_events where sq_events.event_id = ?), ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); }});
 	if (telegramintegration == 'true') {
 		telegram.notify(typeId, eventId, versionId, senderId, roleId);
 	}
@@ -533,7 +533,7 @@ module.exports = function(app, passport) {
     app.post('/rider', isLoggedIn, function(req, res) {
 		if (req.body.actionType == "accept_responsible") {
 			params = [1, req.body.event_id, req.body.role_id, req.body.version];
-			connection.query("UPDATE sq_map_riders_to_roles SET confirmed_version_responsible = ?, WHERE event_id = ? AND role_id = ? AND version = ?", params, function(err,state){ if(err) { console.log(err); } } );
+			connection.query("UPDATE sq_map_riders_to_roles SET confirmed_version_responsible = ? WHERE event_id = ? AND role_id = ? AND version = ?", params, function(err,state){ if(err) { console.log(err); } } );
 			
 			console.log(req.body);
 			notificationService(7, req.body.event_id, req.body.version, req.user.user_id, req.body.role_id);
@@ -541,7 +541,7 @@ module.exports = function(app, passport) {
 		}
 		if (req.body.actionType == "accept_manager") {
 			params = [1, req.body.event_id, req.body.role_id, req.body.version];
-			connection.query("UPDATE sq_map_riders_to_roles SET confirmed_version_manager = ?, WHERE event_id = ? AND role_id = ? AND version = ?", params, function(err,state){ if(err) { console.log(err); } } );
+			connection.query("UPDATE sq_map_riders_to_roles SET confirmed_version_manager = ? WHERE event_id = ? AND role_id = ? AND version = ?", params, function(err,state){ if(err) { console.log(err); } } );
 			
 			console.log(req.body);
 			notificationService(8, req.body.event_id, req.body.version, req.user.user_id, req.body.role_id);
