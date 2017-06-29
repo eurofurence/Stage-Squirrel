@@ -60,12 +60,24 @@
 	   <div class="col-sm-9">
 		   <% for (block of notifications) { %>
 		   <% if (block.type_id != 13 && block.type_id != 15) { %>
-		   <% var event = block.type_id < 6 ? eventdb[block.event_id][block.version_id] : eventdb[block.event_id][eventdb[block.event_id].length-1]; %>
+           <%
+              var event = undefined;
+              var eventId = block.event_id;
+			  var versionId = block.version_id;
+              if (eventdb && eventdb.length > eventId) {
+                var eventEntry = eventdb[eventId];
+                if (block.type_id < 6 && eventEntry.length > block.version_id) {
+                  event = eventEntry[block.version_id];
+                } else {
+                  event = eventEntry[eventEntry.length-1];
+                }
+              }
+           %>
 		   <div class="panel panel-default panel-hover" onmouseover="this.className = this.className.replace('panel-default','panel-primary')" onmouseout="this.className = this.className.replace('panel-primary','panel-default')">
 			   <div class="panel-heading"><%- event ? event.event_title : "General information" %><span class="pull-right"><%=weekday[block.created_on.getDay()] %>, <%=block.created_on.getYear()+1900 %>-<%=block.created_on.getMonth()+1 %>-<%=block.created_on.getDate() %> <%=block.created_on.getHours() %>:<%=block.created_on.getMinutes() %>:<%=block.created_on.getSeconds() %></span></div>
 			   <div class="panel-body">
 			   	<% if (block.type_id == 1) { %>
-					User <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Survey with category <%- event.event_categories %> for <%- event.event_day.getDate() + '.' + (event.event_day.getMonth() + 1) + '.' + event.event_day.getFullYear() %> on <%- stagedb[event.stage_id].stage_name %>. 
+					User <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Survey with category <%- event ? event.event_categories : 'UNKNOWN_CATEGORY' %> for <%- event ? event.event_day.getDate() + '.' + (event.event_day.getMonth() + 1) + '.' + event.event_day.getFullYear() : 'UNKNOWN_DATE' %> on <%- event ? stagedb[event.stage_id].stage_name : 'UNKNOWN_STAGE' %>. 
 				<% } %>
 			   	<% if (block.type_id == 2) { %>
 					Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Survey. The new version is <%- block.version_id %>.
