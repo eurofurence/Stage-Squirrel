@@ -68,7 +68,7 @@
 				                      <b><%= event.event_title %></b>
 				                    </div>
 				                    <div class="col-sm-2">
-									  <%= userdb[event.creator_id].user_name %>
+									  <%= userdb[event.creator_id] ? userdb[event.creator_id].user_name :  'UNKNOWN_CREATOR' %>
 				                    </div>
 				                    <div class="col-sm-2">
 										<% console.log(event.event_day) %>
