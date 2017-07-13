@@ -15,6 +15,7 @@ var INSERT_NOTIFICATION_QUERY = [
 
 var connection;
 var isTelegramActive = false;
+var telegram;
 
 // NotificationService
 var addNotification = function(typeId, eventId, versionId, senderId, roleId) {
@@ -38,8 +39,10 @@ var addNotification = function(typeId, eventId, versionId, senderId, roleId) {
 	}
 }
 
-module.exports = function(telegram, databaseConnection) {
+module.exports = function(telegramIntegration, databaseConnection) {
   connection = databaseConnection || {};
+  telegram = telegramIntegration;
+
   if (connection.query &&
       typeof connection.query !== 'function'
   ) {
