@@ -4,9 +4,9 @@
 module.exports = function(app, passport, connection) {
     // show the signup form
     app.get('/signup', function(req, res) {
-        connection.query('SELECT * from sq_configuration', function (err,rows){
+        connection.query('SELECT * from sq_configuration', function (err,rows) {
             var cfg_key_value = [];
-            for(var i=0; i<rows.length; i++) {
+            for (var i=0; i<rows.length; i++) {
                 var row = rows[i];
                 cfg_key_value[row.configuration_key] = {
                     value: row.configuration_value
