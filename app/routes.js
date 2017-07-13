@@ -4,22 +4,10 @@ var util = require('./lib/utilities');
 
 // Telegram Integration
 var telegram = require('./telegram.js');
-var telegramintegration = 'false';
-if (typeof telegram != 'undefined') {
-	connection.query("SELECT configuration_value FROM sq_configuration WHERE configuration_key = 'TELEGRAM_API_TOKEN'", function (err, result) {
-		if (result[0].configuration_value) { telegramintegration = 'true'; }
-	});
-}
+var notifier = require('./lib/notificationService')(telegram, connection);
 
-// NotificationService
-function notificationService(typeId, eventId, versionId, senderId, roleId) {
-	var now = new Date();
-	var params = [typeId, eventId, eventId, versionId, senderId, roleId, util.getTimeJStoSQL(now)];
-	connection.query("INSERT INTO sq_notifications (`type_id`, `event_id`, `convention_id`, `version_id`, `sender_id`, `role_id`, `created_on`) VALUES (?, ?, (SELECT convention_id from sq_events where sq_events.event_id = ?), ?, ?, ?, ?)", params, function(err,state){ if(err) { console.log(err); }});
-	if (telegramintegration == 'true') {
-		telegram.notify(typeId, eventId, versionId, senderId, roleId);
-	}
-}
+var notificationService = notifier.notify;
+var telegramintegration = notifier.active;
 
 // app/routes.js
 module.exports = function(app, passport) {
