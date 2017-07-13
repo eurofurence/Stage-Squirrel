@@ -63,6 +63,7 @@ module.exports = function(telegramIntegration, databaseConnection) {
 
     return {
         active: isTelegramActive,
-        notify: addNotification
+        notify: addNotification,
+        telegram: telegram
     };
 };

@@ -23,6 +23,7 @@ module.exports = function (req, res, next) {
             return next();
         } else {
             res.render('login.ejs', {
+                mav: req.path,
                 message: req.flash(
                     'loginMessage',
                     'This account is inactive. An administrator must activate your account first.'
