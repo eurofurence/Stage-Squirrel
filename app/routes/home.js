@@ -1,3 +1,6 @@
+// Load isLoggedIn-Middleware
+var isLoggedIn = require('../middleware/isLoggedIn');
+
 // =====================================
 // HOME ================================
 // =====================================
@@ -25,4 +28,4 @@ module.exports = function (app, passport, connection) {
             });
         });
     });
-}
+};
