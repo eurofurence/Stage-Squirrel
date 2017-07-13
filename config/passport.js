@@ -1,5 +1,5 @@
 var config = require('../config/config.js');
-var util = require('../app/utils.js');
+var util = require('../app/lib/utilities');
 var crypt = require('bcrypt');
 // config/passport.js
 				

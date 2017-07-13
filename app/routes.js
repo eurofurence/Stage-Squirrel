@@ -1,7 +1,7 @@
 // mySQL Integration
 var mysql = require('mysql');
 var config = require('../config/config.js');
-var util = require('./utils.js');
+var util = require('./lib/utilities');
 var connection;
 
 function handleDisconnect() {

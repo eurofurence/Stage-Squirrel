@@ -1,5 +1,5 @@
 var config = require('../config/config.js');
-var util = require('./utils.js');
+var util = require('./lib/utilities');
 
 // mySQL Integration
 var connection;
