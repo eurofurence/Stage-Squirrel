@@ -6,7 +6,7 @@ var isLoggedIn = require('../middleware/isLoggedIn');
 // =====================================
 module.exports = function (app, passport, connection, notifier) {
     // show the admin config
-    app.get('/create', isLoggedIn, function(req, res) {
+    app.get('/create', isLoggedIn, function (req, res) {
         console.log("get id:" + req.query.id);
         console.log("get version:" + req.query.version);
         if (req.user.isCreator) {
@@ -79,11 +79,19 @@ module.exports = function (app, passport, connection, notifier) {
                 var version = parseInt(req.body.version);
                 if (req.body.accept == "creator" && req.user.user_id == req.body.event_manager) {
                     notifier.notify(4, event_id, version, req.user.user_id, null);
-                    connection.query("UPDATE sq_events SET event_confirmed_version_creator = ? WHERE event_id = ?", [req.body.version, event_id], function(err,state){ if(err) { console.log(err); }});
+                    connection.query("UPDATE sq_events SET event_confirmed_version_creator = ? WHERE event_id = ?", [req.body.version, event_id], function (err, state) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
                 }
                 if (req.body.accept == "manager" && req.user.isManager) {
                     notifier.notify(5, event_id, version, req.user.user_id, null);
-                    connection.query("UPDATE sq_events SET event_confirmed_version_manager = ? WHERE event_id = ?", [req.body.version, event_id], function(err,state){ if(err) { console.log(err); }});
+                    connection.query("UPDATE sq_events SET event_confirmed_version_manager = ? WHERE event_id = ?", [req.body.version, event_id], function (err, state) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
                 }
                 res.redirect('/create?id=' + event_id+ '&version=' + req.body.version);
             } else {
@@ -104,7 +112,7 @@ module.exports = function (app, passport, connection, notifier) {
                                     for (var key in req.body) {
                                         if (req.body.hasOwnProperty(key) &&
                                             key.startsWith("custom")
-                                        ){
+                                        ) {
                                             if (req.body[key].constructor === Array) {
                                                 for (var i = 0; i < req.body[key].length; i++) {
                                                     console.log("\"INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (" + event_id + ", " + key.replace('custom','') + ", " + version + ", " + req.body[key][i] + ")");

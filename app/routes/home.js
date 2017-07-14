@@ -7,7 +7,7 @@ var isLoggedIn = require('../middleware/isLoggedIn');
 module.exports = function (app, passport, connection) {
     // we will want this protected so you have to be logged in to visit
     // we will use route middleware to verify this (the isLoggedIn function)
-    app.get('/home', isLoggedIn, function(req, res) {
+    app.get('/home', isLoggedIn, function (req, res) {
         connection.query('SELECT * FROM sq_events LEFT JOIN sq_event_details ON sq_events.event_id = sq_event_details.event_id', function (err, eventrows) {
             connection.query('SELECT * from sq_user', function (err, userrows) {
                 connection.query('SELECT * FROM sq_stage', function (err, stagerows) {
@@ -20,7 +20,7 @@ module.exports = function (app, passport, connection) {
                                 stages: stagerows,
                                 roles: rolerows,
                                 nav: 'home',
-                                user : req.user // get the user out of session and pass to template
+                                user: req.user // get the user out of session and pass to template
                             });
                         });
                     });

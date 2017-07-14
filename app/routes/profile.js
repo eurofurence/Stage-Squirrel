@@ -7,18 +7,18 @@ var isLoggedIn = require('../middleware/isLoggedIn');
 module.exports = function (app, passport, connection, notifier) {
     // we will want this protected so you have to be logged in to visit
     // we will use route middleware to verify this (the isLoggedIn function)
-    app.get('/profile', isLoggedIn, function(req, res) {
+    app.get('/profile', isLoggedIn, function (req, res) {
         connection.query("SELECT configuration_value FROM sq_configuration WHERE configuration_key = 'TELEGRAM_BOT_NAME'", function (err, result) {
             res.render('profile.ejs', {
                 nav: 'profile',
-                user : req.user, // get the user out of session and pass to template
+                user: req.user, // get the user out of session and pass to template
                 telegram:  notifier.active,
                 telegrambotname: result[0].configuration_value
             });
         });
     });
 
-    app.post('/profile', isLoggedIn, function(req, res) {
+    app.post('/profile', isLoggedIn, function (req, res) {
         console.log(req.body);
         var errorMsg = "";
         if (typeof req.body.action != 'undefined') {
@@ -85,7 +85,7 @@ module.exports = function (app, passport, connection, notifier) {
         res.render('profile.ejs', {
             nav: 'profile',
             error: errorMsg,
-            user : req.user, // get the user out of session and pass to template
+            user: req.user, // get the user out of session and pass to template
             telegram:  notifier.active
         });
     });

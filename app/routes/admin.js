@@ -6,13 +6,13 @@ var isLoggedIn = require('../middleware/isLoggedIn');
 // =====================================
 module.exports = function (app, passport, connection, notifier) {
     // show the admin config
-    app.get('/admin', isLoggedIn, function(req, res) {
+    app.get('/admin', isLoggedIn, function (req, res) {
         if (req.user.isAdmin) {
             connection.query('SELECT * from sq_configuration', function (err, cfgrows) {
                 connection.query('SELECT * from sq_user order by user_active;', function (err, userrows) {
                     res.render('admin.ejs', {
                         nav: 'admin',
-                        user : req.user,
+                        user: req.user,
                         allusers: userrows,
                         configurations: cfgrows
                     });
@@ -24,7 +24,7 @@ module.exports = function (app, passport, connection, notifier) {
     });
 
     // process the signup form
-    app.post('/admin', isLoggedIn, function(req, res) {
+    app.post('/admin', isLoggedIn, function (req, res) {
         if (req.user.isAdmin) {
             if (req.body.actionType == "global") {
                 connection.query('SELECT configuration_key, configuration_value from sq_configuration', function (err, cfgrows) {

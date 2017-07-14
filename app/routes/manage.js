@@ -17,10 +17,10 @@ module.exports = function (app, passport, connection) {
                                     riderroles: riderrolesrows,
                                     riders: riderrows,
                                     nav: 'manage',
-                                    user  : req.user,
-                                    users : userrows,
+                                    user: req.user,
+                                    users: userrows,
                                     events: eventrows,
-                                    roles : rolerows
+                                    roles: rolerows
                                 });
                             });
                         });

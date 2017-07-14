@@ -3,8 +3,8 @@
 // =====================================
 module.exports = function(app, passport, connection) {
     // show the signup form
-    app.get('/signup', function(req, res) {
-        connection.query('SELECT * from sq_configuration', function (err,rows) {
+    app.get('/signup', function (req, res) {
+        connection.query('SELECT * from sq_configuration', function (err, rows) {
             var cfg_key_value = [];
             for (var i=0; i<rows.length; i++) {
                 var row = rows[i];
@@ -24,8 +24,8 @@ module.exports = function(app, passport, connection) {
 
     // process the signup form
     app.post('/signup', passport.authenticate('local-signup', {
-        successRedirect : '/home', // redirect to the secure home section
-        failureRedirect : '/signup', // redirect back to the signup page if there is an error
-        failureFlash : true // allow flash messages
+        successRedirect: '/home', // redirect to the secure home section
+        failureRedirect: '/signup', // redirect back to the signup page if there is an error
+        failureFlash: true // allow flash messages
     }));
 };
