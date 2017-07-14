@@ -1,7 +1,7 @@
 // =====================================
 // SIGNUP ==============================
 // =====================================
-module.exports = function(app, passport, connection) {
+module.exports = function (app, passport, connection) {
     // show the signup form
     app.get('/signup', function (req, res) {
         connection.query('SELECT * from sq_configuration', function (err, rows) {

@@ -1,7 +1,7 @@
 // =====================================
 // LOGIN ===============================
 // =====================================
-module.exports = function(app, passport) {
+module.exports = function (app, passport) {
     // show the login form
     app.get('/login', function (req, res) {
         if (req.isAuthenticated() && req.user.user_active) {

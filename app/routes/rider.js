@@ -1,6 +1,6 @@
 // Load isLoggedIn-Middleware
 var isLoggedIn = require('../middleware/isLoggedIn');
-var util = require('./lib/utilities');
+var util = require('../lib/utilities');
 
 
 // =====================================
