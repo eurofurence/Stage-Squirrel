@@ -26,6 +26,7 @@ module.exports = function(app, passport) {
     require('./routes/admin')(app, passport, connection, notifier);
     require('./routes/convention')(app, passport, connection);
     require('./routes/create')(app, passport, connection, notifier);
+    require('./routes/editcreate')(app, passport, connection);
     require('./routes/home')(app, passport, connection);
     require('./routes/login')(app, passport);
     require('./routes/manage')(app, passport, connection);
@@ -35,26 +36,6 @@ module.exports = function(app, passport) {
     require('./routes/signup')(app, passport, connection);
     require('./routes/stages')(app, passport, connection);
     require('./routes/surveys')(app, passport, connection);
-
-    // =====================================
-    // CREATE EDIT =========================
-    // =====================================
-    // show the admin config
-    app.get('/editcreate', isLoggedIn, function(req, res) {
-    if (true) {
-        connection.query('SELECT * from sq_role where role_is_admin = 0 and role_is_manager = 0 and role_is_default = 0 and role_is_active = 1', function (err, rows) {
-          res.render('editcreate.ejs', {
-            nav: 'edittemplate',
-                  user : req.user,
-              roles: rows
-          });
-        });
-
-    } else {
-      res.redirect('/home');
-    }
-    });
-
 
     // =====================================
     // LOGOUT ==============================
