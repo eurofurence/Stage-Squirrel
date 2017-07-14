@@ -1,7 +1,8 @@
+// Database connection
 var config = require('../config/config.js');
 var connection = require('./lib/databaseConnection')(config.database);
 
-// Telegram Integration
+// Telegram integration
 var telegram = require('./telegram.js');
 var notifier = require('./lib/notificationService')(telegram, connection);
 
@@ -9,10 +10,12 @@ module.exports = function(app, passport) {
     // =====================================
     // HOME PAGE (with login links) ========
     // =====================================
-    app.get('/', function(req, res) {
-    //if (req.isAuthenticated) res.redirect('/profile');
-    //res.redirect('/login');
-        res.render('login.ejs', { message: req.flash('loginMessage') }); // load the index.ejs file
+    app.get('/', function (req, res) {
+        if (req.isAuthenticated) {
+            res.redirect('/profile');
+        } else {
+            res.render('login.ejs', { message: req.flash('loginMessage') });
+        }
     });
 
     // =====================================
@@ -24,6 +27,7 @@ module.exports = function(app, passport) {
     require('./routes/editcreate')(app, passport, connection);
     require('./routes/home')(app, passport, connection);
     require('./routes/login')(app, passport);
+    require('./routes/logout')(app, passport);
     require('./routes/manage')(app, passport, connection);
     require('./routes/profile')(app, passport, connection, notifier);
     require('./routes/rider')(app, passport, connection, notifier);
@@ -31,12 +35,4 @@ module.exports = function(app, passport) {
     require('./routes/signup')(app, passport, connection);
     require('./routes/stages')(app, passport, connection);
     require('./routes/surveys')(app, passport, connection);
-
-    // =====================================
-    // LOGOUT ==============================
-    // =====================================
-    app.get('/logout', function(req, res) {
-        req.logout();
-        res.redirect('/login');
-    });
 };
