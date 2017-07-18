@@ -112,7 +112,7 @@ read_init_config() {
     fi 
 
   else
-    echo "Cannot switch user to "${run_user}" as we're not UID 0"
+    echo "Cannot switch user to ${run_user} as we're not UID 0"
     return 4
   fi
 
@@ -120,7 +120,7 @@ read_init_config() {
   if [ -z "${nodejs_bin_dir}" ] ; then
 
     if command -v node > /dev/null 2>&1 ; then
-      nodejs_bin_dir="$(dirname $(command -v node))" # use node from $PATH
+      nodejs_bin_dir="$(dirname "$(command -v node)")" # use node from $PATH
     else 
       echo 'nodejs_bin_dir not configured and no suitable node found in $PATH'
       return 2
@@ -188,7 +188,7 @@ program_start() {
                  >> ${logfile} 2>&1 & echo \$!"           \
             )
   else
-    ${nodejs_bin_dir}/node "server.js" >> "${logfile}" 2>&1 &
+    "${nodejs_bin_dir}/node" "server.js" >> "${logfile}" 2>&1 &
     newpid="$!"
   fi
 
@@ -234,7 +234,6 @@ program_status() {
   # When passed, no check for a stalled pidfile is performed
   
   pid_from_pidfile=$(cat "${pidfile}")
-  local do_stalled_pidfile_check
 
 
   if [ "$1" = "--skip-stall-check" ] ; then
@@ -303,7 +302,7 @@ main() {
           true > "${pidfile}"
           return 0
         else
-          echo "Didn't exit within configured timeout of ${sigkill_tiemout}s"
+          echo "Didn't exit within configured timeout of ${sigkill_timeout}s"
           program_force_stop
           sleep "${sigkill_timeout}"
           
