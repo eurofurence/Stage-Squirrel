@@ -13,7 +13,7 @@
 set -e
 
 
-readonly THIS_SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
+readonly THIS_SCRIPT_PATH="$(dirname "$(readlink -f "$0")" )"
 readonly INIT_SCRIPT_CONFIG="${THIS_SCRIPT_PATH}/config/startup.conf"
 
 
@@ -47,8 +47,7 @@ read_init_config() {
       sigkill_timeout) sigkill_timeout="${value}" ;;
       user) run_user="${value}" ;;
       '#'*) continue ;; # ignore comments
-      *) printf "Option \"${parameter}\" with value \"${value}\" "
-         printf "in ${INIT_SCRIPT_CONFIG} unknown.\n" 
+      *) echo "Option \"${parameter}\" with value \"${value}\" in ${INIT_SCRIPT_CONFIG} unknown."
          return 1
       ;;
     esac
@@ -203,7 +202,7 @@ program_stop() {
   pid_from_pidfile=$(cat "${pidfile}")
 
 
-  if "${switch_user_context}" = "true" ] ; then
+  if [ "${switch_user_context}" = "true" ] ; then
     su "${run_user}" -l -c "kill -2 ${pid_from_pidfile}"
   else
     kill -2 "${pid_from_pidfile}"
@@ -218,7 +217,7 @@ program_force_stop() {
   pid_from_pidfile=$(cat "${pidfile}")
 
 
-  if "${switch_user_context}" = "true" ] ; then
+  if [ "${switch_user_context}" = "true" ] ; then
     su "${run_user}" -l -c "kill -2 ${pid_from_pidfile}"
   else
     kill -9 "${pid_from_pidfile}"
@@ -245,7 +244,7 @@ program_status() {
   fi
 
 
-  if [ "${pid_from_pidfile}" -gt "1" > /dev/null 2>&1 ] ; then # We have a valid pid
+  if [ -n "${pid_from_pidfile}" ] && [ "${pid_from_pidfile}" -gt "1" ] ; then
 
     if kill -0 "${pid_from_pidfile}" > /dev/null 2>&1 ; then # And it's not stalled
       return 0 # Program is already running
@@ -278,14 +277,14 @@ main() {
         echo "Waiting "${startup_timeout}"s for server to come up..."
         sleep "${startup_timeout}"
         
-        if ! program_status ; then
-          echo "There was an error during startup. Check you logfiles"
-          return 1
-        else
+        if program_status ; then
           echo "OK"
           echo "Printing last line from logfile:"
           tail -n 1 "${logfile}"
           return 0
+        else
+          echo "There was an error during startup. Check you logfiles"
+          return 1
         fi
 
       fi
@@ -299,7 +298,11 @@ main() {
         sleep "${sigkill_timeout}"
 
         # Skip stalling check since we expect the PID from the pidfile is gone
-        if ! program_status --skip-stall-check ; then
+        if program_status --skip-stall-check ; then
+          echo "OK"
+          true > "${pidfile}"
+          return 0
+        else
           echo "Didn't exit within configured timeout of ${sigkill_tiemout}s"
           program_force_stop
           sleep "${sigkill_timeout}"
@@ -309,10 +312,6 @@ main() {
             return 1
           fi
 
-        else
-          echo "OK"
-          true > "${pidfile}"
-          return 0
         fi  
 
       else
