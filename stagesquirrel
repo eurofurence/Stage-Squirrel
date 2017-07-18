@@ -120,7 +120,7 @@ read_init_config() {
   if [ -z "${nodejs_bin_dir}" ] ; then
 
     if command -v node > /dev/null 2>&1 ; then
-      nodejs_bin_dir="$(dirname "$(command -v node)")" # use node from $PATH
+      nodejs_bin_dir="$(dirname "$(command -v node)" )" # use node from $PATH
     else 
       echo 'nodejs_bin_dir not configured and no suitable node found in $PATH'
       return 2
