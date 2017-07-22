@@ -3,22 +3,22 @@
 // set up ======================================================================
 // get all the tools we need
 
-var express  = require('express');
-var app      = express();
+var express = require('express');
+var app = express();
 // choose on which interface and port stage-squirrel will listen.
 // Set ip to '0.0.0.0' for all interfaces
-var ip       = process.env.IP || '127.0.0.1';
+var ip = process.env.IP || '127.0.0.1';
 //  var mongoose = require('mongoose');
-var mysql    = require('mysql');
+var mysql = require('mysql');
 var sqcfg = require('./config/config.js');
 var passport = require('passport');
-var flash    = require('connect-flash');
+var flash = require('connect-flash');
 
 //var morgan       = require('morgan');
 var fs = require('fs');
 var cookieParser = require('cookie-parser');
-var bodyParser   = require('body-parser');
-var session      = require('express-session');
+var bodyParser = require('body-parser');
+var session = require('express-session');
 
 //var configDB = require('./config/database.js');
 
@@ -45,6 +45,8 @@ app.use(cookieParser()); // read cookies (needed for auth)
 app.use(bodyParser()); // get information from html forms
 
 app.set('view engine', 'ejs'); // set up ejs for templating
+//app.locals.compileDebug = true;
+//app.locals.debug = true;
 
 // required for passport
 app.use(session({ secret: sqcfg.sessionsecret })); // session secret
