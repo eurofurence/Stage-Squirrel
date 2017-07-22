@@ -1,31 +1,10 @@
-<!-- views/login.ejs -->
-<!doctype html>
-<html>
-<head>
-    <title>Stage Squirrel - Login</title>
-    <% include ./partials/head %>
-     <script>
-		function submitHash() {
-			if (location.hash != "") { 
-				document.getElementsByName('hash')[0].value = location.hash; 
-				location.hash = ""; 
-			}
-		}
-	</script>
-	<style>
-	@media (max-width: 767px) {
-		#sq-logo {
-			display: none;
-		}
-	}
-	</style>
-</head>
-<body onload="submitHash()">
-<div class="container">
+<% var title = 'Stage Squirrel - Login'; %>
+<% include ./partials/page-begin %>
 
 <div class="col-sm-6 col-sm-offset-2">
-
-    <h1><span class="fa fa-sign-in"></span> Stage Squirrel - Login</h1>
+    <h1>
+        <span class="fa fa-sign-in"></span> Stage Squirrel - Login
+    </h1>
 
     <!-- show any messages that come back with authentication -->
     <% if (message.length > 0) { %>
@@ -33,27 +12,35 @@
     <% } %>
 
     <!-- LOGIN FORM -->
-    <form action="/login" method="post">
+    <form class="js-login-form" action="/login" method="post">
         <div class="form-group">
             <label>Email</label>
-            <input type="text" class="form-control" name="email">
+            <input type="text" class="form-control" name="email" />
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" class="form-control" name="password">
+            <input type="password" class="form-control" name="password" />
         </div>
-	   <input type="hidden" name="hash" value="">
+        <input type="hidden" name="login-form-hash" value="" />
         <button type="submit" class="btn btn-primary btn-lg">Login</button>
     </form>
 
     <hr>
-
     <p>Need an account? <a href="/signup">Signup</a></p>
-
 </div>
 <div class="col-sm-2" id="sq-logo">
-	<img src="images/sq-logo.png">
+    <img src="images/sq-logo.png">
 </div>
-</div>
-</body>
-</html>
+
+<script>
+    //-- Add some hash to login-form, if available
+    $(document).ready(function submitHash() {
+        if (window.location.hash != '') {
+            $('js-login-form > input[name="login-form-hash"]')
+                .val(window.location.hash);
+            window.location.hash = '';
+        }
+    });
+</script>
+
+<% include ./partials/page-end %>

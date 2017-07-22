@@ -7,5 +7,7 @@
         <% include ./head %>
     </head>
     <body>
-        <% include ./nav %>
+        <% if (typeof user !== 'undefined') { %>
+            <% include ./nav %>
+        <% } %>
         <div class="container">

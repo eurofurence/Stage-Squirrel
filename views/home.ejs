@@ -1,118 +1,130 @@
-<!-- views/profile.ejs -->
-<!doctype html>
-<html>
-<head>
-    <title>Node Authentication</title>
-    <% include ./partials/head %>
-    <% var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; 
-   var userdb = [];
-   var roledb = [];
-   var eventdb = [];
-   var stagedb = [];
-   
-   for (event of events) {
-	 if (typeof eventdb[event.event_id] != 'object') { eventdb[event.event_id] = []; }
-      eventdb[event.event_id][event.event_version] = event;
-   }
-   
-   for (one_user of users) {
- 	  userdb[one_user.user_id] = one_user;
-   }
-   
-   for (stage of stages) {
- 	  stagedb[stage.stage_id] = stage;
-   }
+<% var title = 'Stage Squirrel - Dashboard'; %>
+<% include ./partials/page-begin %>
 
-   for (role of roles) {
- 	  roledb[role.role_id] = role;
-   }
-   roledb[0] = new Object;
-   roledb[0].role_title = "all";
-    
-    %>
-</head>
-<body>
+<%
+var weekday = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+];
+var userdb = [];
+var roledb = [];
+var eventdb = [];
+var stagedb = [];
 
-    <% include ./partials/nav %>	
+for (event of events) {
+    if (typeof eventdb[event.event_id] != 'object') {
+        eventdb[event.event_id] = [];
+    }
+    eventdb[event.event_id][event.event_version] = event;
+}
 
-<div class="container">
+for (one_user of users) {
+    userdb[one_user.user_id] = one_user;
+}
 
-    <div class="page-header text-center">
-        <h1>Dashboard</h1>
-    </div>
+for (stage of stages) {
+    stagedb[stage.stage_id] = stage;
+}
 
-    <div class="row">
+for (role of roles) {
+    roledb[role.role_id] = role;
+}
 
-        <!-- LOCAL INFORMATION -->
-        <div class="col-sm-4">
-            <div class="well">
-                <h3><span class="fa fa-info"></span> Info</h3>
-	                    <p> Welcome to StageSquirrel, <%= user.user_name %>!<br><br>
-					The current convention will be <b><%- user.currentConvention.convention_name %></b>. It will take place from <%- user.currentConvention.date_from.getDate() + '.' + (user.currentConvention.date_from.getMonth() + 1) + '.' + user.currentConvention.date_from.getFullYear() %> to <%- user.currentConvention.date_to.getDate() + '.' + (user.currentConvention.date_to.getMonth() + 1) + '.' + user.currentConvention.date_to.getFullYear() %>.
-					<% var now = new Date();
-					if (now < user.currentConvention.date_from) { %>
-						<h3>Start in <%= Math.floor((user.currentConvention.date_from - now) / 86400000) %> Day(s)</h3>
-					<% } %>
-                    </p>
+roledb[0] = new Object();
+roledb[0].role_title = 'all';
+%>
 
-            </div>
+<div class="page-header text-center"><h1>Dashboard</h1></div>
+<div class="row">
+    <!-- LOCAL INFORMATION -->
+    <div class="col-sm-4">
+        <div class="well">
+            <h3><span class="fa fa-info"></span> Info</h3>
+            <p>
+                Welcome to StageSquirrel, <%= user.user_name %>!
+                <br>
+                <br>
+                The current convention will be <b><%- user.currentConvention.convention_name %></b>.
+                It will take place from <%-
+                    user.currentConvention.date_from.getDate() + '.' +
+                    (user.currentConvention.date_from.getMonth() + 1) + '.' +
+                    user.currentConvention.date_from.getFullYear()
+                %> to <%-
+                    user.currentConvention.date_to.getDate() + '.' +
+                    (user.currentConvention.date_to.getMonth() + 1) + '.' +
+                    user.currentConvention.date_to.getFullYear()
+                %>.
+                <% var now = new Date(); %>
+                <% if (now < user.currentConvention.date_from) { %>
+                    <h3>
+                        Start in <%=
+                            (Math.floor((user.currentConvention.date_from - now) / 86400000))
+                        %> Day(s)
+                    </h3>
+                <% } %>
+            </p>
         </div>
-	   <div class="col-sm-9">
-		   <% for (block of notifications) { %>
-		   <% if (block.type_id != 13 && block.type_id != 15) { %>
-		   <% var event = null; %>
-		   <% if (block.event_id) { event = block.type_id < 6 ? eventdb[block.event_id][block.version_id] : eventdb[block.event_id][eventdb[block.event_id].length-1]; } %>
-		   <div class="panel panel-default panel-hover" onmouseover="this.className = this.className.replace('panel-default','panel-primary')" onmouseout="this.className = this.className.replace('panel-primary','panel-default')">
-			   <div class="panel-heading"><%- event ? event.event_title : "General information" %><span class="pull-right"><%=weekday[block.created_on.getDay()] %>, <%=block.created_on.getYear()+1900 %>-<%=block.created_on.getMonth()+1 %>-<%=block.created_on.getDate() %> <%=block.created_on.getHours() %>:<%=block.created_on.getMinutes() %>:<%=block.created_on.getSeconds() %></span></div>
-			   <div class="panel-body">
-			   	<% if (block.type_id == 1) { %>
-					User <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Survey with category <%- event.event_categories %> for <%- event.event_day.getDate() + '.' + (event.event_day.getMonth() + 1) + '.' + event.event_day.getFullYear() %> on <%- stagedb[event.stage_id].stage_name %>. 
-				<% } %>
-			   	<% if (block.type_id == 2) { %>
-					Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Survey. The new version is <%- block.version_id %>.
-				<% } %>
-			   	<% if (block.type_id == 3) { %>
-					User <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Survey. The new version is <%- block.version_id %>.
-				<% } %>
-			   	<% if (block.type_id == 4) { %>
-					User <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Survey with version <%- block.version_id %>. 
-				<% } %>
-			   	<% if (block.type_id == 5) { %>
-					Manager <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Survey with version <%- block.version_id %>. 
-				<% } %>
-				
-			   	<% if (block.type_id == 6) { %>
-					Manager <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Rider. 
-				<% } %>
-			   	<% if (block.type_id == 7) { %>
-					Responsible for <%- roledb[block.role_id].role_title %> <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Rider with version <%- block.version_id %>. 
-				<% } %>
-			   	<% if (block.type_id == 8) { %>
-					Manager <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Rider. 
-				<% } %>
-			   	<% if (block.type_id == 9) { %>
-					Responsible for <%- roledb[block.role_id].role_title %> <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Rider with version <%- block.version_id %>. 
-				<% } %>
-			   	<% if (block.type_id == 10) { %>
-					Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the role <%- roledb[block.role_id].role_title %> of the Stage Rider with version <%- block.version_id %>. 
-				<% } %>
-			   	<% if (block.type_id == 11) { %>
-					Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Rider. 
-				<% } %>
-			   	<% if (block.type_id == 12) { %>
-					User <b><%- userdb[block.sender_id].user_name %></b> created a comment for <%- roledb[block.role_id].role_title %>. 
-				<% } %>
-			   	<% if (block.type_id == 14) { %>
-					We welcome the new user <b><%- userdb[block.sender_id].user_name %></b>. 
-				<% } %>
-			   </div>
-		   </div>
-		   <% } %>
-		   <% } %>
-	   </div>
-
     </div>
-
+    <div class="col-sm-9">
+        <% for (block of notifications) { %>
+            <% if (block.type_id != 13 && block.type_id != 15) { %>
+                <%
+                var event = null;
+                if (block.event_id) {
+                    if (block.type_id < 6) {
+                        event = eventdb[block.event_id][block.version_id];
+                    } else {
+                        event = eventdb[block.event_id][eventdb[block.event_id].length-1];
+                    }
+                }
+                %>
+                <div class="panel panel-default panel-hover" onmouseover="this.className = this.className.replace('panel-default','panel-primary')" onmouseout="this.className = this.className.replace('panel-primary','panel-default')">
+                    <div class="panel-heading">
+                        <%- event ? event.event_title : "General information" %>
+                        <span class="pull-right">
+                            <%=weekday[block.created_on.getDay()] %>,
+                            <%=block.created_on.getYear()+1900 %>-<%=block.created_on.getMonth()+1 %>-<%=block.created_on.getDate() %>
+                            <%=block.created_on.getHours() %>:<%=block.created_on.getMinutes() %>:<%=block.created_on.getSeconds() %>
+                        </span>
+                    </div>
+                    <div class="panel-body">
+                        <% if (block.type_id == 1) { %>
+                            User <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Survey with category <%- event.event_categories %> for <%- event.event_day.getDate() + '.' + (event.event_day.getMonth() + 1) + '.' + event.event_day.getFullYear() %> on <%- stagedb[event.stage_id].stage_name %>.
+                        <% } else if (block.type_id == 2) { %>
+                            Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Survey. The new version is <%- block.version_id %>.
+                        <% } else if (block.type_id == 3) { %>
+                            User <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Survey. The new version is <%- block.version_id %>.
+                        <% } else if (block.type_id == 4) { %>
+                            User <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Survey with version <%- block.version_id %>.
+                        <% } else if (block.type_id == 5) { %>
+                            Manager <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Survey with version <%- block.version_id %>.
+                        <% } else if (block.type_id == 6) { %>
+                            Manager <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Rider.
+                        <% } else if (block.type_id == 7) { %>
+                            Responsible for <%- roledb[block.role_id].role_title %> <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Rider with version <%- block.version_id %>.
+                        <% } else if (block.type_id == 8) { %>
+                            Manager <b><%- userdb[block.sender_id].user_name %></b> accepted the Stage Rider.
+                        <% } else if (block.type_id == 9) { %>
+                            Responsible for <%- roledb[block.role_id].role_title %> <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Rider with version <%- block.version_id %>.
+                        <% } else if (block.type_id == 10) { %>
+                            Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the role <%- roledb[block.role_id].role_title %> of the Stage Rider with version <%- block.version_id %>.
+                        <% } else if (block.type_id == 11) { %>
+                            Manager <b><%- userdb[block.sender_id].user_name %></b> made changes to the Stage Rider.
+                        <% } else if (block.type_id == 12) { %>
+                            User <b><%- userdb[block.sender_id].user_name %></b> created a comment for <%- roledb[block.role_id].role_title %>.
+                        <% } else if (block.type_id == 14) { %>
+                            We welcome the new user <b><%- userdb[block.sender_id].user_name %></b>.
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+        <% } %>
+    </div>
 </div>
-</body>
-</html>
+
+<% include ./partials/page-end %>
