@@ -1,158 +1,154 @@
-<html>
-<head>
-    <title>Stage Squirrel - Admin Configuration</title>
-    <% include ./partials/head %>
-    <%
-    var userdb = [];
-    var roledb = [];
-    var riderdb = [];
-   
-    for (one_user of users) {
-  	  userdb[one_user.user_id] = one_user;
+<% var title = 'Stage Squirrel - Manage Events'; %>
+<% include ./partials/page-begin %>
+
+<%
+var userdb = [];
+var roledb = [];
+var riderdb = [];
+
+for (one_user of users) {
+    userdb[one_user.user_id] = one_user;
+}
+
+for (rider of riders) {
+    riderdb[rider.event_id] = rider;
+    riderdb[rider.event_id].role = []
+    for (role of riderroles) {
+        riderdb[rider.event_id].role[role.role_id] = role;
     }
-   
-    for (rider of riders) {
-  	  riderdb[rider.event_id] = rider;
-	  riderdb[rider.event_id].role = []
-	  for (role of riderroles) {
-		  riderdb[rider.event_id].role[role.role_id] = role;
-	  }
-    }
+}
 
-    for (role of roles) {
-  	  roledb[role.role_id] = role;
-    }
-    %>
-</head>
-<body>
+for (role of roles) {
+    roledb[role.role_id] = role;
+}
+%>
 
-    <% include ./partials/nav %>	
-
-<div class="container">
-
-    <div class="page-header text-center">
-        <h1>Manage Events</h1>
-    </div>
-	          	<div class="col-lg-12">
-		            <form class="form-horizontal"  method="post"%>
-		              <div class="panel panel-default">
-		                <div class="panel-heading"><strong>New Events without Stage Rider</strong></div>
-		                <div class="panel-body">
-			                  	    	<div class="form-group">
-				                    <div class="col-sm-3">
-				                      <b>Title</b>
-				                    </div>
-				                    <div class="col-sm-2">
-									  Event-Manager
-				                    </div>
-				                    <div class="col-sm-2">
-									Event Day
-				                    </div>
-				                    <div class="col-sm-2">
-									Survey
-				                    </div>
-				                    <div class="col-sm-1">
-									Mine
-				                    </div>
-				                    <div class="col-sm-1">
-									Mgr
-				                    </div>
-				                    <div class="col-sm-2">
-									Rider
-				                    </div>
-				                  </div>					  
-						  <% for (event of events) { %>
-							  <% if (typeof riderdb[event.event_id] == 'undefined') { %>
-			                  	    	<div class="form-group">
-				                    <div class="col-sm-3">
-				                      <b><%= event.event_title %></b>
-				                    </div>
-				                    <div class="col-sm-2">
-									  <%= userdb[event.creator_id] ? userdb[event.creator_id].user_name :  'UNKNOWN_CREATOR' %>
-				                    </div>
-				                    <div class="col-sm-2">
-										<% console.log(event.event_day) %>
-									  <%= event.event_day == null ? '-' : event.event_day.getDate() + "." + (event.event_day.getMonth()+1) + "." + event.event_day.getFullYear() %>
-				                    </div>
-				                    <div class="col-sm-2">
-									  <a href="create?id=<%= event.event_id %>">edit Survey</a>
-				                    </div>
-				                    <div class="col-sm-1">
-									  <% if (event.event_confirmed_version_manager == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
-				                    </div>
-				                    <div class="col-sm-1">
-									  <% if (event.event_confirmed_version_creator == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
-				                    </div>
-				                    <div class="col-sm-2">
-									  <a href="rider?id=<%= event.event_id %>">create Rider</a>
-				                    </div>
-				                  </div>
-					   		<% } %>
-						  <% } %>
-						</div>
-					  </div>
-		              <div class="panel panel-default">
-		                <div class="panel-heading"><strong>Events with Stage Rider</strong></div>
-		                <div class="panel-body">
-			                  	    	<div class="form-group">
-				                    <div class="col-sm-3">
-				                      <b>Title</b>
-				                    </div>
-				                    <div class="col-sm-2">
-									  Event-Manager
-				                    </div>
-				                    <div class="col-sm-2">
-									Survey
-				                    </div>
-								<% for (role of roles) { %>
-									<% if (role.role_id > 9) { %>
-				                    <div class="col-sm-1">
-									  <span class="glyphicon glyphicon-<%= role.role_glyphicon %>"></span>
-				                    </div>
-									<% } %>
-								<% } %>
-				                    <div class="col-sm-2">
-									  Rider
-				                    </div>
-				                  </div>
-						  <% for (event of events) { %>
-							  <% if (typeof riderdb[event.event_id] != 'undefined') { %>
-			                  	    	<div class="form-group">
-				                    <div class="col-sm-3">
-				                      <b><%= event.event_title %></b>
-				                    </div>
-				                    <div class="col-sm-2">
-									  <%= userdb[event.creator_id].user_name %>
-				                    </div>
-				                    <div class="col-sm-2">
-									  <a href="create?id=<%= event.event_id %>">edit Survey</a>
-				                    </div>
-								<% for (role of roles) { %>
-									<% if (role.role_id > 9) { %>
-				                    <div class="col-sm-1">
-									  <% if (riderdb[event.event_id].role[role.role_id].confirmed_version_manager == 1) { %>
-										  <span class="glyphicon glyphicon-ok"></span> 
-									  <% } else {%>
-										  <span class="glyphicon glyphicon-remove"></span> 
-									  <% } %>
-									  <% if (riderdb[event.event_id].role[role.role_id].confirmed_version_responsible == 1) { %>
-										  <span class="glyphicon glyphicon-ok"></span> 
-									  <% } else {%>
-										  <span class="glyphicon glyphicon-remove"></span> 
-									  <% } %>
-				                    </div>
-									<% } %>
-									<% } %>
-				                    <div class="col-sm-2">
-									  <a href="rider?id=<%= event.event_id %>">edit Rider</a>
-				                    </div>
-				                  </div>
-					   		<% } %>
-						  <% } %>
-						</div>
-					  </div>
-					</form>
-				</div>
+<div class="page-header text-center">
+    <h1>Manage Events</h1>
 </div>
-</body>
-</html>  
+<div class="col-lg-12">
+    <form class="form-horizontal"  method="post"%>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <strong>New Events without Stage Rider</strong>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <b>Title</b>
+                    </div>
+                    <div class="col-sm-2">
+                        Event-Manager
+                    </div>
+                    <div class="col-sm-2">
+                        Event Day
+                    </div>
+                    <div class="col-sm-2">
+                        Survey
+                    </div>
+                    <div class="col-sm-1">
+                        Mine
+                    </div>
+                    <div class="col-sm-1">
+                        Mgr
+                    </div>
+                    <div class="col-sm-2">
+                        Rider
+                    </div>
+                </div>
+                <% for (event of events) { %>
+                    <% if (typeof riderdb[event.event_id] == 'undefined') { %>
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                <b><%= event.event_title %></b>
+                            </div>
+                            <div class="col-sm-2">
+                                <%= userdb[event.creator_id] ? userdb[event.creator_id].user_name :  'UNKNOWN_CREATOR' %>
+                            </div>
+                            <div class="col-sm-2">
+                                <% console.log(event.event_day) %>
+                                <%= event.event_day == null ? '-' : event.event_day.getDate() + "." + (event.event_day.getMonth()+1) + "." + event.event_day.getFullYear() %>
+                            </div>
+                            <div class="col-sm-2">
+                                <a href="create?id=<%= event.event_id %>">edit Survey</a>
+                            </div>
+                            <div class="col-sm-1">
+                                <% if (event.event_confirmed_version_manager == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
+                            </div>
+                            <div class="col-sm-1">
+                                <% if (event.event_confirmed_version_creator == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
+                            </div>
+                            <div class="col-sm-2">
+                                <a href="rider?id=<%= event.event_id %>">create Rider</a>
+                            </div>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <strong>Events with Stage Rider</strong>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <b>Title</b>
+                    </div>
+                    <div class="col-sm-2">
+                        Event-Manager
+                    </div>
+                    <div class="col-sm-2">
+                        Survey
+                    </div>
+                    <% for (role of roles) { %>
+                        <% if (role.role_id > 9) { %>
+                            <div class="col-sm-1">
+                                <span class="glyphicon glyphicon-<%= role.role_glyphicon %>"></span>
+                            </div>
+                        <% } %>
+                    <% } %>
+                    <div class="col-sm-2">
+                        Rider
+                    </div>
+                </div>
+                <% for (event of events) { %>
+                    <% if (typeof riderdb[event.event_id] != 'undefined') { %>
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                <b><%= event.event_title %></b>
+                            </div>
+                            <div class="col-sm-2">
+                                <%= userdb[event.creator_id].user_name %>
+                            </div>
+                            <div class="col-sm-2">
+                                <a href="create?id=<%= event.event_id %>">edit Survey</a>
+                            </div>
+                            <% for (role of roles) { %>
+                                <% if (role.role_id > 9) { %>
+                                    <div class="col-sm-1">
+                                        <% if (riderdb[event.event_id].role[role.role_id].confirmed_version_manager == 1) { %>
+                                            <span class="glyphicon glyphicon-ok"></span>
+                                        <% } else { %>
+                                            <span class="glyphicon glyphicon-remove"></span>
+                                        <% } %>
+                                        <% if (riderdb[event.event_id].role[role.role_id].confirmed_version_responsible == 1) { %>
+                                            <span class="glyphicon glyphicon-ok"></span>
+                                        <% } else { %>
+                                            <span class="glyphicon glyphicon-remove"></span>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            <% } %>
+                            <div class="col-sm-2">
+                                <a href="rider?id=<%= event.event_id %>">edit Rider</a>
+                            </div>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
+    </form>
+</div>
+
+<% include ./partials/page-end %>

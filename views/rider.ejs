@@ -1,811 +1,865 @@
-<html>
-<head>
-    <title>Stage Squirrel - Admin Configuration</title>
-    <% include ./partials/head %>
-	<% var create = true; 
-	   var stagemgrs = [];
-	   var stagemgr;
-	   var eventmgr;
-	   var userdb = [];
-	   var roledb = [];
-	   if (rider != null) {
-		   create = false;
-	   }
-	   
-	   for (one_user of users) {
-	 	  userdb[one_user.user_id] = one_user;
-   		  if (one_user.user_id == event.creator_id) { 
-			eventmgr = one_user; 
-		  }
-	   }
+<% var title = 'Stage Squirrel - Stage Rider for ' + event.event_title; %>
+<% include ./partials/page-begin %>
 
-	   for (role of roles) {
-	 	  roledb[role.role_id] = role;
-		  roledb[role.role_id].member = [];
-	   }
+<%
+    var create = true;
+    var stagemgrs = [];
+    var stagemgr;
+    var eventmgr;
+    var userdb = [];
+    var roledb = [];
+    if (rider != null) {
+        create = false;
+    }
 
-	   for (mapper of mapuserrole) {
-		   if (typeof userdb[mapper.user_id] != 'undefined') {
-			   roledb[mapper.role_id].member.push(userdb[mapper.user_id]);
-		   }
-	   }
+    for (one_user of users) {
+        userdb[one_user.user_id] = one_user;
+        if (one_user.user_id == event.creator_id) {
+            eventmgr = one_user;
+        }
+    }
 
-	   if (create) {
-		stagemgr = user;
-	   } else {
-	     stagemgr = userdb[rider.manager_id];
-	   }
-	   
-	   if (create) {
-		   datestarttime = new Date(event.event_day);
-	        datestarttime.setHours(12);
-		   datestarttime.setMinutes(00);
-	   } else {
-	   	   datestarttime = new Date(rider.startdate);
-	   }
-	   datepretime = new Date(datestarttime.getTime() - 60000 * event.event_time_pre);
-	   dateendtime = new Date(datestarttime.getTime() + 60000 * event.event_time_dur);
-	   dateposttime = new Date(dateendtime.getTime() + 60000 * event.event_time_post);
-	   pretime = (datepretime.getHours() < 10 ? '0' : '') + datepretime.getHours() + ':' + (datepretime.getMinutes() < 10 ? '0' : '') + datepretime.getMinutes();
-	   starttime = (datestarttime.getHours() < 10 ? '0' : '') + datestarttime.getHours() + ':' + (datestarttime.getMinutes() < 10 ? '0' : '') + datestarttime.getMinutes();
-	   endtime = (dateendtime.getHours() < 10 ? '0' : '') + dateendtime.getHours() + ':' + (dateendtime.getMinutes() < 10 ? '0' : '') + dateendtime.getMinutes();
-	   posttime = (dateposttime.getHours() < 10 ? '0' : '') + dateposttime.getHours() + ':' + (dateposttime.getMinutes() < 10 ? '0' : '') + dateposttime.getMinutes();
-	   console.log(pretime);
-	   console.log(starttime);
-	   console.log(endtime);
-	   console.log(posttime);
-	   %>
-     <script>
-		userId = <%- user.user_id %>;
-		tabcontent = [];
-		stageboxcontent = [];
-		<% tabcontent = [];
-		stageboxcontent = [];
-		for (role of roles) { 
-			if (role.role_id > 9) { 
-				tabcontent[role.role_title.toLowerCase()] = [];
-				%>tabcontent['<%- role.role_title.toLowerCase() %>'] = [];
-		<% } } %>
-		<% for (object of rolerider) { 
-		tabcontent[roledb[object.role_id].role_title.toLowerCase()][(object.version - 1)] = object;
-		%>tabcontent['<%- roledb[object.role_id].role_title.toLowerCase() %>'][<%- (object.version - 1) %>] = <%- JSON.stringify(object) %>;		
-		<% } %>
-		
-		<% for (object of stagebox) { 
-		if (typeof stageboxcontent[(object.event_version - 1)] != 'object') { stageboxcontent[(object.event_version - 1)] = []; 
-			%>stageboxcontent[<%- (object.event_version - 1) %>] = [];
-		<% } 
-		stageboxcontent[(object.event_version - 1)][(object.stagebox_channel - 1)] = object;
-		 %>stageboxcontent[<%- (object.event_version - 1) %>][<%- (object.stagebox_channel - 1) %>] = <%- JSON.stringify(object) %>;		
-		<% } %>
+    for (role of roles) {
+        roledb[role.role_id] = role;
+        roledb[role.role_id].member = [];
+    }
 
-		var startdate = new Date('<%= create ? event.event_day : rider.startdate %>');
-		<% if (create) { %>
-			startdate.setHours(12);
-			startdate.setMinutes(0);
-		<% } %>
-		 
-		function calcTime() {
-			var time_pre = <%= event.event_time_pre %>;
-			var time_dur = <%= event.event_time_dur %>;
-			var time_post = <%= event.event_time_post %>;
-		
-			startdate.setHours(document.getElementById('time_dur_h').value);
-			startdate.setMinutes(document.getElementById('time_dur_m').value);
-			document.getElementsByName('starttime')[0].value = startdate;
-			var date = new Date(startdate); date.setMinutes(startdate.getMinutes() - time_pre);
-			document.getElementById('time_pre').innerHTML = (date.getHours() < 10 ? '0' : '') + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
-			var date = new Date(startdate); date.setMinutes(startdate.getMinutes() + time_dur);
-			document.getElementById('time_post').innerHTML = (date.getHours() < 10 ? '0' : '') + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
-			var date = new Date(startdate); date.setMinutes(startdate.getMinutes() + time_dur + time_post);
-			document.getElementById('time_end').innerHTML = (date.getHours() < 10 ? '0' : '') + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();		
-		}
-		
-		function addRow(btn) {
-			var newNode = btn.previousElementSibling.cloneNode("true");
-			if (newNode.getElementsByClassName('btn-danger').length == 0) {
-				var xbtn = document.createElement("input");
-				xbtn.setAttribute("type","button");
-				xbtn.setAttribute("value","x");
-				xbtn.setAttribute("class","btn btn-danger");	
-				xbtn.setAttribute("onClick","delRow(this)")
-				newNode.appendChild(xbtn); 
-			}
-		
-			if (newNode.getElementsByClassName('increase').length > 0) {
-				newNode.getElementsByClassName('increase')[0].innerHTML = btn.parentNode.getElementsByClassName('row').length + 1;
-			}
-		
-			btn.parentNode.insertBefore(newNode, btn);
-		}
-		function delRow(btn) {
-			var parent = btn.parentNode.parentNode;
-			btn.parentNode.remove();
-			if (parent.getElementsByClassName('increase').length > 0) {
-				var Nodes = parent.getElementsByClassName('increase');
-				for (var i = 0; i < Nodes.length; i++) {
-					Nodes[i].textContent = i+1;
-				}
-			}
-		}
-		
-		function paging(element) {
-			var pages = document.getElementById('role_page').children;
-			for (page of pages) {
-				page.classList.remove('active');
-			}
-			element.parentNode.classList.add('active');
-			var panels = document.getElementsByClassName('panel');
-			for (panel of panels) {
-				panel.style.display='none';
-			}
-			var activepanels = document.getElementsByClassName(element.hash.substr(1));
-			for (panel of activepanels) {
-				panel.style.display='block';
-			}
-		}
-		
-		<% if (!create) { %>
-		function versioning(element) {
-			for (box of element.parentNode.parentNode.children) {
-				box.classList.remove('active');
-			}
-			var role = element.hash.substring(1);
-			var max_version = tabcontent[role].length - 1;
-			var version = element.innerHTML - 1;
-			
-			element.parentNode.classList.add('active');
-			document.getElementById('content_' + role).value = tabcontent[role][version].content;
-			document.getElementById('responsible_' + role).value = tabcontent[role][version].responsible_id;
-			
-			if (tabcontent[role][version].confirmed_version_manager == 1) {
-				document.getElementById('manager_yes_' + role.toLowerCase()).style.display = 'inline-block';
-				document.getElementById('manager_no_' + role.toLowerCase()).style.display = 'none'; 
-			} else {
-				document.getElementById('manager_yes_' + role.toLowerCase()).style.display = 'none';
-				document.getElementById('manager_no_' + role.toLowerCase()).style.display = 'inline-block'; 
-			}
-			
-			if (tabcontent[role][version].confirmed_version_responsible == 1) {
-				document.getElementById('responsible_yes_' + role.toLowerCase()).style.display = 'inline-block';
-				document.getElementById('responsible_no_' + role.toLowerCase()).style.display = 'none'; 
-			} else {
-				document.getElementById('responsible_yes_' + role.toLowerCase()).style.display = 'none';
-				document.getElementById('responsible_no_' + role.toLowerCase()).style.display = 'inline-block'; 
-			}
-			
-			if (version == max_version<%- user.isManager ? '' : '&& userId == tabcontent[role][version].responsible_id' %>) { 
-				document.getElementById('save_' + role).readOnly = false; 
-				document.getElementById('content_' + role).readOnly = false;
-				<% if (user.isManager) { %>document.getElementById('responsible_' + role).readOnly = false; <% } %>
-				if (document.getElementById('manager_accept_' + role) && tabcontent[role][version].confirmed_version_manager == 0) { document.getElementById('manager_accept_' + role).style.display = 'inline-block'; } 
-				if (document.getElementById('responsible_accept_' + role) && tabcontent[role][version].responsible_version_manager == 0) { document.getElementById('responsible_accept_' + role).style.display = 'inline-block'; } 
-			} else { 
-				document.getElementById('save_' + role).readOnly = true; 
-				document.getElementById('content_' + role).readOnly = true;
-				document.getElementById('responsible_' + role).readOnly = true;
-				if (document.getElementById('manager_accept_' + role)) { document.getElementById('manager_accept_' + role).style.display = 'none'; }
-				if (document.getElementById('responsible_accept_' + role)) { document.getElementById('responsible_accept_' + role).style.display = 'none'; }
-			} 
-			
-			if (document.getElementById('stagebox').className.indexOf(role) > 0) {
-				fields = document.getElementsByClassName('stagebox');
-				for (var i=0; i<fields.length; i++) {
-					if (version == max_version<%- user.isManager ? '' : '&& userId == tabcontent[role][version].responsible_id' %>) {  
-						fields[i].readOnly = false;
-					} else { 
-						fields[i].readOnly = true;
-					} 
-					if (fields[i].name.substr(3,3) == "lab") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_label; }
-					if (fields[i].name.substr(3,3) == "sub") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_subcore; }
-					if (fields[i].name.substr(3,3) == "48v") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_48v; }
-					if (fields[i].name.substr(3,3) == "via") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_viadi; }
-					
-				}
-			}
-		}
-		<% } %>
-	</script>
-</head>
-<body>
+    for (mapper of mapuserrole) {
+        if (typeof userdb[mapper.user_id] != 'undefined') {
+            roledb[mapper.role_id].member.push(userdb[mapper.user_id]);
+        }
+    }
 
-    <% include ./partials/nav %>	
-    <% var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; %>
-<div class="container">
+    if (create) {
+        stagemgr = user;
+    } else {
+        stagemgr = userdb[rider.manager_id];
+    }
 
-    <div class="page-header text-center">
-		        <h1>Stage Rider for <%= event.event_title %></h1>
-    </div>
-	
-	<ul class="pagination" id="role_page">
-	  <li><a href="#general" onclick="paging(this)" id="general">General</a></li>
-	  <li><a href="#management" onclick="paging(this)" id="management">Management</a></li>
-	  <% for (role of roles) { %>
-	  <% if (role.role_id >= 10) { %>
-	  <li><a href="#<%= role.role_title.toLowerCase() %>" onclick="paging(this)" id="<%= role.role_title.toLowerCase() %>"><%= role.role_title %></a></li>
-	  <% } } %>
-	  <% if (!create) { %>
-	  <li><a href="#comment" onclick="paging(this)" id="comment">Comments</a></li>
-	  <% } %>
-	</ul>
-	<div class="col-lg-12">
-    <% if (create) { %><button class="btn btn-primary form-control" name="actionType" value="create" form="generalform">Create Stage Rider</button><% } %><br><br>
-	</div>
-    <div class="row">
-	    <div class="col-lg-12">
-		    <form class="form-horizontal" method="post" id="generalform">
-			    <input type="hidden" name="event_id" value="<%= event.event_id%>">
-			    <input type="hidden" name="creator_id" value="<%= eventmgr.user_id%>">
-			    <input type="hidden" name="starttime" value="<%= datestarttime %>">
-			    <div class="panel panel-default general">
-				     <div class="panel-heading"><strong>Event Info</strong></div>
-			    		<div class="panel-body">
-             			  	<p>Basic event info</p>
-             			  	<div class="form-group">
-               				<div class="col-sm-5">
-                 				   <b>Event title</b>
-               			     </div>
-               				<div class="col-sm-8">
-                 				   <%= event.event_title %>
-               			     </div>
-		   			     </div>
-             			  	<div class="form-group">
-               				<div class="col-sm-5">
-                 				   <b>Stage</b>
-               			     </div>
-               				<div class="col-sm-8">
-							   <% if (user.isManager) { %>
-	                      		   <select class="form-control" name="stage_id">
-								   <% for (stage of stages) { %>
-	                        		 		   <option value=<%=stage.stage_id %> <%=event.stage_id == stage.stage_id ? "selected" : ""%>><%=stage.stage_name %></option>
-								   <% } %>
-							   </select>
-							   <% } else { %>
-								   <% for (stage of stages) { 
-	                        		 		   if (event.stage_id == stage.stage_id) { %>
-										   <%= stage.stage_name %>
-								   <% } } } %>
-               			     </div>
-		   			     </div>
-             			  	<div class="form-group">
-               				<div class="col-sm-5">
-                 				   <b>Day of week / Date</b>
-               			     </div>
-               				<div class="col-sm-8">
-	                      		   <%=weekday[event.event_day.getDay()] %>, <%=event.event_day.getYear()+1900 %>-<%=event.event_day.getMonth()+1 %>-<%=event.event_day.getDate() %>
-               			     </div>
-		   			     </div>
-             			  	<div class="form-group">
-               				<div class="col-sm-5">
-                 				   <b>Setup starts at (Crew standby)</b>
-               			     </div>
-               				<div class="col-sm-8">
-	                      		   <span id="time_pre"><%= pretime %></span> (<%= event.event_time_pre %> Minutes)
-               			     </div>
-		   			     </div>
-             			  	<div class="form-group">
-               				<div class="col-sm-5">
-                 				   <b>Scheduled event start and end</b>
-               			     </div>
-               				<div class="col-sm-8">
-								<% if (user.isManager) { %>
-	                      		   <input type="number" min=0 max=23 value=<%= datestarttime.getHours() %> onChange="calcTime()" id="time_dur_h">:<input type="number" min=0 max=59 value=<%= datestarttime.getMinutes() %> onChange="calcTime()" id="time_dur_m">
-							     <% } else { %>
-									<%= starttime %>
-								<% }%> - <span id="time_post"><%= endtime %></span> (<%= event.event_time_dur %> Minutes)
-               			     </div>
-		   			     </div>
-             			  	<div class="form-group">
-               				<div class="col-sm-5">
-                 				   <b>After Event Breakdown till</b>
-               			     </div>
-               				<div class="col-sm-8">
-		                      		   <span id="time_end"><%= posttime %></span> (<%= event.event_time_post %> Minutes)
-               			     </div>
-		   			     </div>
-						
-			  	    	</div>
-			  	</div>
- 			    <div class="panel panel-default general">
- 				     <div class="panel-heading"><strong>Managers</strong></div>
- 			    		<div class="panel-body">
-              			  	<p>Important people who are working on the show</p>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   <b>Stage Manager</b>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <%= stagemgr.user_name%>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   Mobile:
-                			     </div>
-                				<div class="col-sm-3">
-							   <% if (user.isManager) { %>
-                  				   <input type="text" class="form-control" value="<%= create ? stagemgr.user_mobile : rider.manager_mobile %>" name="stagemgr_mobile">
-							   <% } else { %>
-								   <%= rider.manager_mobile %>
-							   <% } %>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   <b>Event Manager</b>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <%= eventmgr.user_name%>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   Mobile:
-                			     </div>
-                				<div class="col-sm-3">
-							   <% if (user.isManager) { %>
-                  				   <input type="text" class="form-control" value="<%= create ? eventmgr.user_mobile : rider.creator_mobile %>" name="eventmgr_mobile">
-							   <% } else { %>
-								   <%= rider.creator_mobile %>
-							   <% } %>
-                			     </div>
- 		   			     </div>
-						
- 			  	    	</div>
- 			  	</div>
- 			     <div class="panel panel-default management">
- 				     <div class="panel-heading"><strong>Crew</strong></div>
- 			    		<div class="panel-body">
-              			  	<p>People who are working on the show</p>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   LxD (programmer)
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_lxd %>"<%= user.isManager ? '' : ' readonly' %> name="crew_lxd">
-                			     </div>
-                				<div class="col-sm-3">
-                  				   Lx1 (FOH)
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_lx1 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_lx1">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-		                  				   Lx2 (Monitoring)
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_lx2 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_lx2">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   A1 (FOH)
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_a1 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_a1">
-                			     </div>
-                				<div class="col-sm-3">
-                  				   A2 (Mic Wrangler)
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_a2 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_a2">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   A3 (Monitoring)
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_a3 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_a3">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   Stage Deck Tech
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_stagedecktech %>"<%= user.isManager ? '' : ' readonly' %> name="crew_stagedecktech">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   Bananas setup
-                			     </div>
-                				<div class="col-sm-9">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_bananassetup %>"<%= user.isManager ? '' : ' readonly' %> name="crew_bananassetup">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   Bananas show
-                			     </div>
-                				<div class="col-sm-9">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_bananasshow %>"<%= user.isManager ? '' : ' readonly' %>  name="crew_bananasshow">
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-3">
-                  				   Bananas breakdown
-                			     </div>
-                				<div class="col-sm-9">
-                  				   <input type="text" class="form-control" value="<%= create ? '' : rider.crew_bananasbreakdown %>"<%= user.isManager ? '' : ' readonly' %>  name="crew_bananasbreakdown">
-                			     </div>
- 		   			     </div>
-						
- 			  	    	</div>
- 			  	</div>
- 			     <div class="panel panel-default management">
- 				     <div class="panel-heading"><strong>Contacts</strong></div>
- 			    		<div class="panel-body">
-              			  	<p>Other people involved in the event</p>
-              			  	<div class="form-group">
-                				<div class="col-sm-4">
-                  				   <strong>Function</strong>
-                			     </div>
-                				<div class="col-sm-4">
-                  				   <strong>Nick</strong>
-                			     </div>
-                				<div class="col-sm-4">
-                  				   <strong>Mobile (int. notation)</strong>
-                			     </div>
- 		   			     </div>
-						<% for (var i = 0; i < contacts.length; i++) { %>
-              			  	<div class="form-group">
-                				<div class="col-sm-4">
-                  				   <input type="text" class="form-control" value="<%= contacts[i].contact_function %>"<%= user.isManager ? '' : ' readonly' %> name="contact_function">
-                			     </div>
-                				<div class="col-sm-4">
-                  				   <input type="text" class="form-control" value="<%= contacts[i].contact_nick %>"<%= user.isManager ? '' : ' readonly' %> name="contact_nick">
-                			     </div>
-                				<div class="col-sm-4">
-                  				   <input type="text" class="form-control" value="<%= contacts[i].contact_mobile %>"<%= user.isManager ? '' : ' readonly' %> name="contact_mobile">
-                			     </div>
-							<% if (i > 0 && user.isManager) { %>
-							<input type="button" value="x" class="btn btn-danger" onclick="delRow(this)">
-							<% } %>
- 		   			     </div>
-						<% } %>
-						<% if (user.isManager) { %>
-						<% if (contacts.length == 0) { %>
-              			  	<div class="form-group">
-                				<div class="col-sm-4">
-                  				   <input type="text" class="form-control" value="" name="contact_function">
-                			     </div>
-                				<div class="col-sm-4">
-                  				   <input type="text" class="form-control" value="" name="contact_nick">
-                			     </div>
-                				<div class="col-sm-4">
-                  				   <input type="text" class="form-control" value="" name="contact_mobile">
-                			     </div>
- 		   			     </div>
-						<% } %>
-						<input type="button" class="btn btn-primary" value="add Row" onclick="addRow(this)">
-						<% } %>
- 			  	    	</div>
-	 			</div>
-				<% if (!create && user.isManager) { %>
-				<div class="panel panel-default general management">
-   			    		<div class="panel-body">
-    			  			<div class="form-group">
-      						<div class="col-sm-3">
-        				   			<button class="btn btn-primary form-control" name="actionType" value="editGeneral">Save Changes</button>
-      			    			</div>
-   			     		</div>
-					</div>
-				</div>
-				<% } %>
-			</form>
-				  
-				  <% for (role of roles) { %>
-				  <% if (role.role_id >= 10) { %>
-					<% var max_version = tabcontent[role.role_title.toLowerCase()].length %>		
-		    <form class="form-horizontal" method="post"%>
-			    <input type="hidden" name="event_id" value="<%= event.event_id%>">
-			    <input type="hidden" name="role_id" value="<%= role.role_id%>" <%= create ? ' form=generalform' : '' %>>
-			    <input type="hidden" name="version" value="<%= max_version %>">
-   			     <div class="panel panel-default <%= role.role_title.toLowerCase() %>">
-   				     <div class="panel-heading"><strong>Todo's <%= role.role_title %></strong></div>
-   			    		<div class="panel-body">
-                			<div class="form-group">
-							<% if (tabcontent[role.role_title.toLowerCase()].length > 1) { %>
-							<div class="col-sm-12">
-							<ul class="pagination" id="version_page">
-								<% for (var i = 1; i <= max_version; i++) { %>
-							  <li<%= i == max_version ? ' class=active' : ''%>><a href="#<%= role.role_title.toLowerCase() %>" onclick="versioning(this)"><%= i %></a></li>
-							     <% } %>
-							</ul>
-							</div>
-							<% } %>
+    if (create) {
+        datestarttime = new Date(event.event_day);
+        datestarttime.setHours(12);
+        datestarttime.setMinutes(00);
+    } else {
+        datestarttime = new Date(rider.startdate);
+    }
 
-						  	<% if (!create) { %>
-							<div class="col-sm-12">
-								<% var conf_man = tabcontent[role.role_title.toLowerCase()][max_version - 1].confirmed_version_manager == 1 ? 1 : 0; %>
-					  			<h4 style="display:<%= conf_man == 1 ? 'inline-block' : 'none' %>;" id="manager_yes_<%- role.role_title.toLowerCase() %>"><span class="label label-success">Accepted by Stage Manager: Yes</span></h4>
-					  			<h4 style="display:<%= conf_man == 0 ? 'inline-block' : 'none' %>;" id="manager_no_<%- role.role_title.toLowerCase() %>"><span class="label label-warning">Accepted by Stage Manager: No</span></h4>
-					  			<% if (user.isManager && conf_man == 0) { %>
-					  				<button type="submit" class="btn btn-primary btn-xs" name="actionType" value="accept_manager" style="margin-top: -5px;" id="manager_accept_<%- role.role_title.toLowerCase() %>">accept</button>
-					  			<% } %>
-						  	</div>
-						  	<div class="col-sm-12">
-								<% var conf_res = tabcontent[role.role_title.toLowerCase()][max_version - 1].confirmed_version_responsible == 1 ? 1 : 0; %>
-					  			<h4 style="display:<%= conf_res == 1 ? 'inline-block' : 'none' %>;" id="responsible_yes_<%- role.role_title.toLowerCase() %>"><span class="label label-success" align="right">Accepted by Responsible person: Yes</span></h4>
-					  			<h4 style="display:<%= conf_res == 0 ? 'inline-block' : 'none' %>;" id="responsible_no_<%- role.role_title.toLowerCase() %>"><span class="label label-warning" align="right">Accepted by Responsible person: No</span></h4>
-					  			<% if (user.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id && conf_res == 0) { %>
-					  				<button type="submit" class="btn btn-primary btn-xs" name="actionType" value="accept_responsible" style="margin-top: -5px;" id="responsible_accept_<%- role.role_title.toLowerCase() %>">accept</button>
-					  			<% } %>
-							</div>
-						  	<% } %>
-							
-                  				<div class="col-sm-4">
-                    				   <strong>Responsible:</strong>
-                  			     </div>
-                  				<div class="col-sm-8">
-								   <select class="form-control" name="responsible_id" value="<%= create ? 0 : tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id %>" id="responsible_<%= role.role_title.toLowerCase() %>"<%= user.isManager ? '' : ' readonly' %><%= create ? ' form=generalform' : '' %>>
-								<% for (roleuser of roledb[role.role_id].member) { %>
-                    				   <option value="<%= roleuser.user_id %>" <%- !create && roleuser.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id ? 'selected' : '0' %>><%= roleuser.user_name %></option>
-								<% } %>
-							        </select>
-                  			     </div>
-   		   			     </div>
-                			<p>List things that need to be done for the <%= role.role_title.toLowerCase() %></p>
-                			<div class="form-group">
-                  				<div class="col-sm-12">
-                    				   <textarea class="form-control" name="role_content" style="resize:none;" rows="20" id="content_<%= role.role_title.toLowerCase() %>"<%= user.isManager || user.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id ? '' : ' readonly' %><%= create ? ' form=generalform' : '' %>><%= create ? '' : tabcontent[role.role_title.toLowerCase()][max_version  - 1].content %></textarea>
-                  			     </div>
-   		   			     </div>
+    datepretime = new Date(datestarttime.getTime() - 60000 * event.event_time_pre);
+    dateendtime = new Date(datestarttime.getTime() + 60000 * event.event_time_dur);
+    dateposttime = new Date(dateendtime.getTime() + 60000 * event.event_time_post);
+    pretime = (datepretime.getHours() < 10 ? '0' : '') + datepretime.getHours() + ':' + (datepretime.getMinutes() < 10 ? '0' : '') + datepretime.getMinutes();
+    starttime = (datestarttime.getHours() < 10 ? '0' : '') + datestarttime.getHours() + ':' + (datestarttime.getMinutes() < 10 ? '0' : '') + datestarttime.getMinutes();
+    endtime = (dateendtime.getHours() < 10 ? '0' : '') + dateendtime.getHours() + ':' + (dateendtime.getMinutes() < 10 ? '0' : '') + dateendtime.getMinutes();
+    posttime = (dateposttime.getHours() < 10 ? '0' : '') + dateposttime.getHours() + ':' + (dateposttime.getMinutes() < 10 ? '0' : '') + dateposttime.getMinutes();
 
-						<% if (!create && (user.isManager || user.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id)) { %>
-		    			  	<div class="form-group" id=>
-		      				<div class="col-sm-3">
-		        				   <button class="btn btn-primary form-control" name="actionType" value="editRole" id="save_<%= role.role_title.toLowerCase() %>">Save Changes</button>
-		      			     </div>
-		   			     </div>
-						<% } %>
-   			  	    	</div>
-  	 			</div>
-				<% if (role.role_controls_stagebox == 1) { %>
- 			     <div id="stagebox" class="panel panel-default <%= role.role_title.toLowerCase() %>">
-					<input type="hidden" name="hasStagebox" value="true">
- 				     <div class="panel-heading"><strong>Stagebox: Physical input patch</strong></div>
- 			    		<div class="panel-body">
-              			  	<p>This is the patch used in the field to setup the stagebox. Already filled boxes represent the default.</p>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   <strong>Channel</strong>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <strong>Label</strong>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <strong>via subcore/channel</strong>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <strong>+48v</strong>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <strong>via DI - active or passive</strong>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   1
-							   <input type="hidden" name="sb_cha" value="1"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 1' : stageboxcontent[max_version-1][0].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][0].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][0].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][0].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   2
-							   <input type="hidden" name="sb_cha" value="2"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 2' : stageboxcontent[max_version-1][1].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][1].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][1].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][1].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   3
-							   <input type="hidden" name="sb_cha" value="3"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 3' : stageboxcontent[max_version-1][2].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][2].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][2].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][2].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   4
-							   <input type="hidden" name="sb_cha" value="4"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 4' : stageboxcontent[max_version-1][3].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][3].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][3].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][3].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-						<% for (var i = 4; i < 14; i++) { %>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   <%- i + 1 %>
-							   <input type="hidden" name="sb_cha" value="<%- i + 1 %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-						<% } %>
-						
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   15
-							   <input type="hidden" name="sb_cha" value="15"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'Audience L' : stageboxcontent[max_version-1][14].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][14].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? 'true' : stageboxcontent[max_version-1][14].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][14].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-1">
-                  				   16
-							   <input type="hidden" name="sb_cha" value="16"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'Audience R' : stageboxcontent[max_version-1][15].stagebox_label %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][15].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? 'true' : stageboxcontent[max_version-1][15].stagebox_48v %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][15].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %>>
-                			     </div>
- 		   			     </div>
-						
- 			  	    	</div>
-	 			  </div>
-				<% }  %>
-		    		</form>
-				<% } } %>
-				
- 		    <form class="form-horizontal" method="post"%>
-			    <input type="hidden" name="event_id" value="<%= event.event_id%>">
-			    <input type="hidden" name="comment_no" value="<%= (comments.length + 1) %>">
- 			    <div class="panel panel-default comment">
- 				     <div class="panel-heading"><strong>Add a comment</strong></div>
- 			    		<div class="panel-body">
-              			  	<div class="form-group">
-                				<div class="col-sm-2">
-                  				   Content:
-                			     </div>
-                				<div class="col-sm-11">
-                  				   <textarea class="form-control" name="comment_content" style="resize:none;" rows="8"></textarea>
-                			     </div>
- 		   			     </div>
-              			  	<div class="form-group">
-                				<div class="col-sm-2">
-                  				   Affected roles:
-                			     </div>
-                				<div class="col-sm-2">
-								<div class="radio">
-                  				   <label><input type="radio" value="0" name="commentrole">General</label>
-                			     </div>
-							</div>
-							<% for (role of roles) { %>
-							<% if (role.role_id > 9) { %>
-							<% var checked = false; %>
-							<% for (user_of_role of roledb[role.role_id].member) {
-								if (user_of_role.user_id == user.user_id) {
-									checked = true;
-								}
-							} %>
-                				<div class="col-sm-2">
-                			     </div>
-                				<div class="col-sm-2">
-								<div class="radio">
-                  				   <label><input type="radio" value="<%- role.role_id %>" name="commentrole"<%- checked ? 'checked' : '' %>><%= role.role_title %></label>
-						   </div>
-                			     </div>
-							<% } } %>
- 		   			     </div>
-              			  	<div class="form-group <%= role.role_title.toLowerCase() %>">
-                				<div class="col-sm-2">
-                			     </div>
-                				<div class="col-sm-3">
-                  				   <button class="btn btn-primary form-control" name="actionType" value="comment">Submit</button>
-                			     </div>
- 		   			     </div>
- 		   			 </div>
- 		   		</div>
-				<% for (var i = 0; i < comments.length; i++) { %>
-				<% comment = comments[i]; %>
-				<a name="comment-<%= (comments.length - i) %>"></a>
- 			     <div class="panel panel-<%= comment.user_id == user.user_id ? 'primary' : 'default'%> comment">
- 				     <div class="panel-heading">
-                  				   <b><%= userdb[comment.user_id].user_name %></b><span class="pull-right"><%=weekday[comment.create_time.getDay()] %>, <%=comment.create_time.getYear()+1900 %>-<%=comment.create_time.getMonth()+1 %>-<%=comment.create_time.getDate() %> <%=comment.create_time.getHours() %>:<%=comment.create_time.getMinutes() %>:<%=comment.create_time.getSeconds() %></span>
-					</div>
- 			    		<div class="panel-body">
-              			  	<p><%- comment.comment_value %></p>
-						
- 		   			 </div>
- 				     <div class="panel-footer">
-						<% var aff_roles = comment.affected_roles.split(';'); %>
-						<% for (var j = 0; j < aff_roles.length; j++) { 
-                  			if (aff_roles[j] == 0) { %>General<% } 
-						else { %><%- roledb[aff_roles[j]].role_title %><% } %> 
-						<% if (j != aff_roles.length - 1) { %>|<% } %>
-						<% } %><span class="pull-right"><%= (comments.length - i) %></span>
-					</div>
- 		   		</div>
-				<% } %>
-		    </form>	
-		</div>
-	</div>
-</div>
-</body>
+    var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    console.log(pretime);
+    console.log(starttime);
+    console.log(endtime);
+    console.log(posttime);
+%>
+
 <script>
-	if(window.location.hash) {
-		if (window.location.hash.length > 9 && window.location.hash.substring(0,9) == "#comment-") {
-			document.getElementById('comment').click();
-			window.location.href = window.location.hash;
-			
-		} else {
-			document.getElementById(window.location.hash.substring(1)).click();
-		}
-	} else {
-		document.getElementById('general').click();
-	}
+    var userId = <%- user.user_id %>;
+    var tabcontent = [];
+    var stageboxcontent = [];
+    <%
+        tabcontent = [];
+        stageboxcontent = [];
+    %>
+    <% for (role of roles) { %>
+        <% if (role.role_id > 9) { %>
+            <% tabcontent[role.role_title.toLowerCase()] = []; %>
+            tabcontent['<%- role.role_title.toLowerCase() %>'] = [];
+        <% } %>
+    <% } %>
+    <% for (object of rolerider) { %>
+        <% tabcontent[roledb[object.role_id].role_title.toLowerCase()][(object.version - 1)] = object; %>
+        tabcontent['<%- roledb[object.role_id].role_title.toLowerCase() %>'][<%- (object.version - 1) %>] = <%- JSON.stringify(object) %>;
+    <% } %>
+
+    <% for (object of stagebox) { %>
+        <% if (typeof stageboxcontent[(object.event_version - 1)] != 'object') { %>
+            <% stageboxcontent[(object.event_version - 1)] = []; %>
+            stageboxcontent[<%- (object.event_version - 1) %>] = [];
+        <% } %>
+        <% stageboxcontent[(object.event_version - 1)][(object.stagebox_channel - 1)] = object; %>
+        stageboxcontent[<%- (object.event_version - 1) %>][<%- (object.stagebox_channel - 1) %>] = <%- JSON.stringify(object) %>;
+    <% } %>
+
+    var startdate = new Date('<%= create ? event.event_day : rider.startdate %>');
+    <% if (create) { %>
+        startdate.setHours(12);
+        startdate.setMinutes(0);
+    <% } %>
+
+    function calcTime() {
+        var time_pre = <%= event.event_time_pre %>;
+        var time_dur = <%= event.event_time_dur %>;
+        var time_post = <%= event.event_time_post %>;
+
+        startdate.setHours(document.getElementById('time_dur_h').value);
+        startdate.setMinutes(document.getElementById('time_dur_m').value);
+        document.getElementsByName('starttime')[0].value = startdate;
+        var date = new Date(startdate); date.setMinutes(startdate.getMinutes() - time_pre);
+        document.getElementById('time_pre').innerHTML = (date.getHours() < 10 ? '0' : '') + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+        var date = new Date(startdate); date.setMinutes(startdate.getMinutes() + time_dur);
+        document.getElementById('time_post').innerHTML = (date.getHours() < 10 ? '0' : '') + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+        var date = new Date(startdate); date.setMinutes(startdate.getMinutes() + time_dur + time_post);
+        document.getElementById('time_end').innerHTML = (date.getHours() < 10 ? '0' : '') + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+    }
+
+    function paging(element) {
+        var pages = document.getElementById('role_page').children;
+        for (page of pages) {
+            page.classList.remove('active');
+        }
+        element.parentNode.classList.add('active');
+        var panels = document.getElementsByClassName('panel');
+        for (panel of panels) {
+            panel.style.display='none';
+        }
+        var activepanels = document.getElementsByClassName(element.hash.substr(1));
+        for (panel of activepanels) {
+            panel.style.display='block';
+        }
+    }
+
+    <% if (!create) { %>
+        function versioning(element) {
+            for (box of element.parentNode.parentNode.children) {
+                box.classList.remove('active');
+            }
+            var role = element.hash.substring(1);
+            var max_version = tabcontent[role].length - 1;
+            var version = element.innerHTML - 1;
+
+            element.parentNode.classList.add('active');
+            document.getElementById('content_' + role).value = tabcontent[role][version].content;
+            document.getElementById('responsible_' + role).value = tabcontent[role][version].responsible_id;
+
+            if (tabcontent[role][version].confirmed_version_manager == 1) {
+                document.getElementById('manager_yes_' + role.toLowerCase()).style.display = 'inline-block';
+                document.getElementById('manager_no_' + role.toLowerCase()).style.display = 'none';
+            } else {
+                document.getElementById('manager_yes_' + role.toLowerCase()).style.display = 'none';
+                document.getElementById('manager_no_' + role.toLowerCase()).style.display = 'inline-block';
+            }
+
+            if (tabcontent[role][version].confirmed_version_responsible == 1) {
+                document.getElementById('responsible_yes_' + role.toLowerCase()).style.display = 'inline-block';
+                document.getElementById('responsible_no_' + role.toLowerCase()).style.display = 'none';
+            } else {
+                document.getElementById('responsible_yes_' + role.toLowerCase()).style.display = 'none';
+                document.getElementById('responsible_no_' + role.toLowerCase()).style.display = 'inline-block';
+            }
+
+            if (version == max_version<%- user.isManager ? '' : '&& userId == tabcontent[role][version].responsible_id' %>) {
+                document.getElementById('save_' + role).readOnly = false;
+                document.getElementById('content_' + role).readOnly = false;
+                <% if (user.isManager) { %>document.getElementById('responsible_' + role).readOnly = false; <% } %>
+                if (document.getElementById('manager_accept_' + role) && tabcontent[role][version].confirmed_version_manager == 0) { document.getElementById('manager_accept_' + role).style.display = 'inline-block'; }
+                if (document.getElementById('responsible_accept_' + role) && tabcontent[role][version].responsible_version_manager == 0) { document.getElementById('responsible_accept_' + role).style.display = 'inline-block'; }
+            } else {
+                document.getElementById('save_' + role).readOnly = true;
+                document.getElementById('content_' + role).readOnly = true;
+                document.getElementById('responsible_' + role).readOnly = true;
+                if (document.getElementById('manager_accept_' + role)) { document.getElementById('manager_accept_' + role).style.display = 'none'; }
+                if (document.getElementById('responsible_accept_' + role)) { document.getElementById('responsible_accept_' + role).style.display = 'none'; }
+            }
+
+            if (document.getElementById('stagebox').className.indexOf(role) > 0) {
+                fields = document.getElementsByClassName('stagebox');
+                for (var i=0; i<fields.length; i++) {
+                    if (version == max_version<%- user.isManager ? '' : '&& userId == tabcontent[role][version].responsible_id' %>) {
+                        fields[i].readOnly = false;
+                    } else {
+                        fields[i].readOnly = true;
+                    }
+                    if (fields[i].name.substr(3,3) == "lab") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_label; }
+                    if (fields[i].name.substr(3,3) == "sub") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_subcore; }
+                    if (fields[i].name.substr(3,3) == "48v") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_48v; }
+                    if (fields[i].name.substr(3,3) == "via") { fields[i].value = stageboxcontent[version][parseInt(i/4)].stagebox_viadi; }
+
+                }
+            }
+        }
+    <% } %>
 </script>
-</html>  
+
+<div class="page-header text-center">
+    <h1>Stage Rider for <%= event.event_title %></h1>
+</div>
+<ul class="pagination" id="role_page">
+    <li><a href="#general" onclick="paging(this)" id="general">General</a></li>
+    <li><a href="#management" onclick="paging(this)" id="management">Management</a></li>
+    <% for (role of roles) { %>
+        <% if (role.role_id >= 10) { %>
+            <li>
+                <a href="#<%= role.role_title.toLowerCase() %>" onclick="paging(this)" id="<%= role.role_title.toLowerCase() %>">
+                    <%= role.role_title %>
+                </a>
+            </li>
+        <% } %>
+    <% } %>
+    <% if (!create) { %>
+        <li><a href="#comment" onclick="paging(this)" id="comment">Comments</a></li>
+    <% } %>
+</ul>
+<div class="col-lg-12">
+    <% if (create) { %>
+        <button class="btn btn-primary form-control" name="actionType" value="create" form="generalform">
+            Create Stage Rider
+        </button>
+    <% } %>
+    <br />
+    <br />
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <form class="form-horizontal" method="post" id="generalform">
+            <input type="hidden" name="event_id" value="<%= event.event_id%>" />
+            <input type="hidden" name="creator_id" value="<%= eventmgr.user_id%>" />
+            <input type="hidden" name="starttime" value="<%= datestarttime %>" />
+            <div class="panel panel-default general">
+                <div class="panel-heading">
+                    <strong>Event Info</strong>
+                </div>
+                <div class="panel-body">
+                    <p>Basic event info</p>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <b>Event title</b>
+                        </div>
+                        <div class="col-sm-8">
+                            <%= event.event_title %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <b>Stage</b>
+                        </div>
+                        <div class="col-sm-8">
+                            <% if (user.isManager) { %>
+                                <select class="form-control" name="stage_id">
+                                    <% for (stage of stages) { %>
+                                        <option value="<%=stage.stage_id %>" <%=event.stage_id == stage.stage_id ? 'selected' : ''%> >
+                                            <%=stage.stage_name %>
+                                        </option>
+                                    <% } %>
+                                </select>
+                            <% } else { %>
+                                <% for (stage of stages) { %>
+                                    <% if (event.stage_id == stage.stage_id) { %>
+                                        <%= stage.stage_name %>
+                                    <% } %>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <b>Day of week / Date</b>
+                        </div>
+                        <div class="col-sm-8">
+                            <%=weekday[event.event_day.getDay()] %>, <%=event.event_day.getYear()+1900 %>-<%=event.event_day.getMonth()+1 %>-<%=event.event_day.getDate() %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <b>Setup starts at (Crew standby)</b>
+                        </div>
+                        <div class="col-sm-8">
+                            <span id="time_pre"><%= pretime %></span> (<%= event.event_time_pre %> Minutes)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <b>Scheduled event start and end</b>
+                        </div>
+                        <div class="col-sm-8">
+                            <% if (user.isManager) { %>
+                                <input type="number" min="0" max="23" value="<%= datestarttime.getHours() %>" onChange="calcTime()" id="time_dur_h" />
+                                :
+                                <input type="number" min="0" max="59" value="<%= datestarttime.getMinutes() %>" onChange="calcTime()" id="time_dur_m" />
+                            <% } else { %>
+                                <%= starttime %>
+                            <% } %>
+                            -
+                            <span id="time_post">
+                                <%= endtime %>
+                            </span>
+                            (<%= event.event_time_dur %> Minutes)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-5">
+                            <b>After Event Breakdown till</b>
+                        </div>
+                        <div class="col-sm-8">
+                            <span id="time_end">
+                                <%= posttime %>
+                            </span>
+                            (<%= event.event_time_post %> Minutes)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default general">
+                <div class="panel-heading">
+                    <strong>Managers</strong>
+                </div>
+                <div class="panel-body">
+                    <p>Important people who are working on the show</p>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <b>Stage Manager</b>
+                        </div>
+                        <div class="col-sm-3">
+                            <%= stagemgr.user_name%>
+                        </div>
+                        <div class="col-sm-3">
+                            Mobile:
+                        </div>
+                        <div class="col-sm-3">
+                            <% if (user.isManager) { %>
+                                <input type="text" class="form-control" value="<%= create ? stagemgr.user_mobile : rider.manager_mobile %>" name="stagemgr_mobile" />
+                            <% } else { %>
+                                <%= rider.manager_mobile %>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <b>Event Manager</b>
+                        </div>
+                        <div class="col-sm-3">
+                            <%= eventmgr.user_name%>
+                        </div>
+                        <div class="col-sm-3">
+                            Mobile:
+                        </div>
+                        <div class="col-sm-3">
+                            <% if (user.isManager) { %>
+                                <input type="text" class="form-control" value="<%= create ? eventmgr.user_mobile : rider.creator_mobile %>" name="eventmgr_mobile" />
+                            <% } else { %>
+                                <%= rider.creator_mobile %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default management">
+                <div class="panel-heading">
+                    <strong>Crew</strong>
+                </div>
+                <div class="panel-body">
+                    <p>People who are working on the show</p>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            LxD (programmer)
+                         </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_lxd %>"<%= user.isManager ? '' : ' readonly' %> name="crew_lxd" />
+                        </div>
+                        <div class="col-sm-3">
+                            Lx1 (FOH)
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_lx1 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_lx1" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                                    Lx2 (Monitoring)
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_lx2 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_lx2" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            A1 (FOH)
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_a1 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_a1" />
+                        </div>
+                        <div class="col-sm-3">
+                            A2 (Mic Wrangler)
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_a2 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_a2" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            A3 (Monitoring)
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_a3 %>"<%= user.isManager ? '' : ' readonly' %> name="crew_a3" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            Stage Deck Tech
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_stagedecktech %>"<%= user.isManager ? '' : ' readonly' %> name="crew_stagedecktech" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            Bananas setup
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_bananassetup %>"<%= user.isManager ? '' : ' readonly' %> name="crew_bananassetup" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            Bananas show
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_bananasshow %>"<%= user.isManager ? '' : ' readonly' %>  name="crew_bananasshow" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            Bananas breakdown
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" value="<%= create ? '' : rider.crew_bananasbreakdown %>"<%= user.isManager ? '' : ' readonly' %>  name="crew_bananasbreakdown" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default management">
+                <div class="panel-heading">
+                    <strong>Contacts</strong>
+                </div>
+                <div class="panel-body">
+                    <p>Other people involved in the event</p>
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <strong>Function</strong>
+                        </div>
+                        <div class="col-sm-4">
+                            <strong>Nick</strong>
+                        </div>
+                        <div class="col-sm-4">
+                            <strong>Mobile (int. notation)</strong>
+                        </div>
+                    </div>
+                    <% for (var i = 0; i < contacts.length; i++) { %>
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" value="<%= contacts[i].contact_function %>"<%= user.isManager ? '' : ' readonly' %> name="contact_function" />
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" value="<%= contacts[i].contact_nick %>"<%= user.isManager ? '' : ' readonly' %> name="contact_nick" />
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" value="<%= contacts[i].contact_mobile %>"<%= user.isManager ? '' : ' readonly' %> name="contact_mobile" />
+                            </div>
+                            <% if (i > 0 && user.isManager) { %>
+                                <input type="button" value="x" class="btn btn-danger js-remove-row" />
+                            <% } %>
+                        </div>
+                    <% } %>
+                    <% if (user.isManager) { %>
+                        <% if (contacts.length == 0) { %>
+                            <div class="form-group">
+                                <div class="col-sm-4">
+                                    <input type="text" class="form-control" value="" name="contact_function" />
+                                </div>
+                                <div class="col-sm-4">
+                                    <input type="text" class="form-control" value="" name="contact_nick" />
+                                </div>
+                                <div class="col-sm-4">
+                                    <input type="text" class="form-control" value="" name="contact_mobile" />
+                                </div>
+                            </div>
+                        <% } %>
+                        <input type="button" class="btn btn-primary js-add-row" value="Add Row" />
+                    <% } %>
+                </div>
+            </div>
+            <% if (!create && user.isManager) { %>
+                <div class="panel panel-default general management">
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                <button class="btn btn-primary form-control" name="actionType" value="editGeneral">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </form>
+
+        <% for (role of roles) { %>
+            <% if (role.role_id >= 10) { %>
+                <% var max_version = tabcontent[role.role_title.toLowerCase()].length %>
+                <form class="form-horizontal" method="post"%>
+                    <input type="hidden" name="event_id" value="<%= event.event_id%>" />
+                    <input type="hidden" name="role_id" value="<%= role.role_id%>" <%= create ? ' form=generalform' : '' %> />
+                    <input type="hidden" name="version" value="<%= max_version %>" />
+                    <div class="panel panel-default <%= role.role_title.toLowerCase() %>">
+                        <div class="panel-heading">
+                            <strong>Todo's <%= role.role_title %></strong>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <% if (tabcontent[role.role_title.toLowerCase()].length > 1) { %>
+                                    <div class="col-sm-12">
+                                        <ul class="pagination" id="version_page">
+                                            <% for (var i = 1; i <= max_version; i++) { %>
+                                                <li<%= i == max_version ? ' class=active' : ''%>>
+                                                    <a href="#<%= role.role_title.toLowerCase() %>" onclick="versioning(this)">
+                                                        <%= i %>
+                                                    </a>
+                                                </li>
+                                            <% } %>
+                                        </ul>
+                                    </div>
+                                <% } %>
+                                <% if (!create) { %>
+                                    <div class="col-sm-12">
+                                        <% var conf_man = tabcontent[role.role_title.toLowerCase()][max_version - 1].confirmed_version_manager == 1 ? 1 : 0; %>
+                                        <h4 style="display:<%= conf_man == 1 ? 'inline-block' : 'none' %>;" id="manager_yes_<%- role.role_title.toLowerCase() %>">
+                                            <span class="label label-success">Accepted by Stage Manager: Yes</span>
+                                        </h4>
+                                        <h4 style="display:<%= conf_man == 0 ? 'inline-block' : 'none' %>;" id="manager_no_<%- role.role_title.toLowerCase() %>">
+                                            <span class="label label-warning">Accepted by Stage Manager: No</span>
+                                        </h4>
+                                        <% if (user.isManager && conf_man == 0) { %>
+                                            <button type="submit" class="btn btn-primary btn-xs" name="actionType" value="accept_manager" style="margin-top: -5px;" id="manager_accept_<%- role.role_title.toLowerCase() %>">
+                                                accept
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <% var conf_res = tabcontent[role.role_title.toLowerCase()][max_version - 1].confirmed_version_responsible == 1 ? 1 : 0; %>
+                                        <h4 style="display:<%= conf_res == 1 ? 'inline-block' : 'none' %>;" id="responsible_yes_<%- role.role_title.toLowerCase() %>">
+                                            <span class="label label-success" align="right">
+                                                Accepted by Responsible person: Yes
+                                            </span>
+                                        </h4>
+                                        <h4 style="display:<%= conf_res == 0 ? 'inline-block' : 'none' %>;" id="responsible_no_<%- role.role_title.toLowerCase() %>">
+                                            <span class="label label-warning" align="right">
+                                                Accepted by Responsible person: No
+                                            </span>
+                                        </h4>
+                                        <% if (user.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id && conf_res == 0) { %>
+                                            <button type="submit" class="btn btn-primary btn-xs" name="actionType" value="accept_responsible" style="margin-top: -5px;" id="responsible_accept_<%- role.role_title.toLowerCase() %>">accept</button>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                                <div class="col-sm-4">
+                                    <strong>Responsible:</strong>
+                                </div>
+                                <div class="col-sm-8">
+                                    <select class="form-control" name="responsible_id" value="<%= create ? 0 : tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id %>" id="responsible_<%= role.role_title.toLowerCase() %>"<%= user.isManager ? '' : ' readonly' %><%= create ? ' form=generalform' : '' %> >
+                                        <% for (roleuser of roledb[role.role_id].member) { %>
+                                            <option value="<%= roleuser.user_id %>" <%- !create && roleuser.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id ? 'selected' : '0' %> >
+                                                <%= roleuser.user_name %>
+                                            </option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                            </div>
+                            <p>List things that need to be done for the <%= role.role_title.toLowerCase() %></p>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <textarea class="form-control" name="role_content" style="resize:none;" rows="20" id="content_<%= role.role_title.toLowerCase() %>"<%= user.isManager || user.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id ? '' : ' readonly' %><%= create ? ' form=generalform' : '' %> ><%= create ? '' : tabcontent[role.role_title.toLowerCase()][max_version  - 1].content %></textarea>
+                                </div>
+                            </div>
+                            <% if (!create && (user.isManager || user.user_id == tabcontent[role.role_title.toLowerCase()][max_version - 1].responsible_id)) { %>
+                                <div class="form-group">
+                                    <div class="col-sm-3">
+                                        <button class="btn btn-primary form-control" name="actionType" value="editRole" id="save_<%= role.role_title.toLowerCase() %>">
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% if (role.role_controls_stagebox == 1) { %>
+                        <div id="stagebox" class="panel panel-default <%= role.role_title.toLowerCase() %>">
+                            <input type="hidden" name="hasStagebox" value="true" />
+                            <div class="panel-heading">
+                                <strong>Stagebox: Physical input patch</strong>
+                            </div>
+                            <div class="panel-body">
+                                <p>This is the patch used in the field to setup the stagebox. Already filled boxes represent the default.</p>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        <strong>Channel</strong>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <strong>Label</strong>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <strong>via subcore/channel</strong>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <strong>+48v</strong>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <strong>via DI - active or passive</strong>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        1
+                                        <input type="hidden" name="sb_cha" value="1"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 1' : stageboxcontent[max_version-1][0].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][0].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][0].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][0].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        2
+                                        <input type="hidden" name="sb_cha" value="2"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 2' : stageboxcontent[max_version-1][1].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][1].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][1].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][1].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        3
+                                        <input type="hidden" name="sb_cha" value="3"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 3' : stageboxcontent[max_version-1][2].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][2].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][2].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][2].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        4
+                                        <input type="hidden" name="sb_cha" value="4"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'UHF 4' : stageboxcontent[max_version-1][3].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][3].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][3].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][3].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                </div>
+                                <% for (var i = 4; i < 14; i++) { %>
+                                    <div class="form-group">
+                                        <div class="col-sm-1">
+                                            <%- i + 1 %>
+                                            <input type="hidden" name="sb_cha" value="<%- i + 1 %>"<%= create ? ' form=generalform' : '' %> />
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][i].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                        </div>
+                                    </div>
+                                <% } %>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        15
+                                        <input type="hidden" name="sb_cha" value="15"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'Audience L' : stageboxcontent[max_version-1][14].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][14].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? 'true' : stageboxcontent[max_version-1][14].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][14].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-1">
+                                        16
+                                        <input type="hidden" name="sb_cha" value="16"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_lab" value="<%- create ? 'Audience R' : stageboxcontent[max_version-1][15].stagebox_label %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_sub" value="<%- create ? '' : stageboxcontent[max_version-1][15].stagebox_subcore %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_48v" value="<%- create ? 'true' : stageboxcontent[max_version-1][15].stagebox_48v %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control stagebox" name="sb_via" value="<%- create ? '' : stageboxcontent[max_version-1][15].stagebox_viadi %>"<%= create ? ' form=generalform' : '' %> />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </form>
+            <% } %>
+        <% } %>
+        <form class="form-horizontal" method="post"%>
+            <input type="hidden" name="event_id" value="<%= event.event_id%>" />
+            <input type="hidden" name="comment_no" value="<%= (comments.length + 1) %>" />
+            <div class="panel panel-default comment">
+                <div class="panel-heading">
+                    <strong>Add a comment</strong>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            Content:
+                        </div>
+                        <div class="col-sm-11">
+                            <textarea class="form-control" name="comment_content" style="resize:none;" rows="8"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            Affected roles:
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" value="0" name="commentrole" />
+                                    General
+                                </label>
+                            </div>
+                        </div>
+                        <% for (role of roles) { %>
+                            <% if (role.role_id > 9) { %>
+                                <%
+                                    var checked = false;
+                                    for (user_of_role of roledb[role.role_id].member) {
+                                        if (user_of_role.user_id == user.user_id) {
+                                            checked = true;
+                                        }
+                                    }
+                                %>
+                                <div class="col-sm-2">
+                                </div>
+                                <div class="col-sm-2">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" value="<%- role.role_id %>" name="commentrole"<%- checked ? 'checked' : '' %> />
+                                            <%= role.role_title %>
+                                        </label>
+                                    </div>
+                                </div>
+                            <% } %>
+                        <% } %>
+                    </div>
+                    <div class="form-group <%= role.role_title.toLowerCase() %>">
+                        <div class="col-sm-2">
+                        </div>
+                        <div class="col-sm-3">
+                            <button class="btn btn-primary form-control" name="actionType" value="comment">
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% for (var i = 0; i < comments.length; i++) { %>
+                <% comment = comments[i]; %>
+                <a name="comment-<%= (comments.length - i) %>"></a>
+                <div class="panel panel-<%= comment.user_id == user.user_id ? 'primary' : 'default'%> comment">
+                    <div class="panel-heading">
+                        <b><%= userdb[comment.user_id].user_name %></b>
+                        <span class="pull-right">
+                            <%=weekday[comment.create_time.getDay()] %>,
+                            <%=comment.create_time.getYear()+1900 %>-<%=comment.create_time.getMonth()+1 %>-<%=comment.create_time.getDate() %>
+                            <%=comment.create_time.getHours() %>:<%=comment.create_time.getMinutes() %>:<%=comment.create_time.getSeconds() %>
+                        </span>
+                    </div>
+                    <div class="panel-body">
+                        <p><%- comment.comment_value %></p>
+                    </div>
+                    <div class="panel-footer">
+                        <% var aff_roles = comment.affected_roles.split(';'); %>
+                        <% for (var j = 0; j < aff_roles.length; j++) { %>
+                            <% if (aff_roles[j] == 0) { %>
+                                General
+                            <% } else { %>
+                                <%- roledb[aff_roles[j]].role_title %>
+                            <% } %>
+                            <% if (j != aff_roles.length - 1) { %>|<% } %>
+                        <% } %>
+                        <span class="pull-right">
+                            <%= (comments.length - i) %>
+                        </span>
+                    </div>
+                </div>
+            <% } %>
+        </form>
+    </div>
+</div>
+
+<script>
+    //-- React to hash on rider-page
+    $(document).ready(function reactToHash() {
+        if (window.location.hash) {
+            if (window.location.hash.length > 9 &&
+                window.location.hash.substring(0, 9) == "#comment-"
+            ) {
+                $('#comment').click();
+                window.location.href = window.location.hash;
+            } else {
+                $('#' + window.location.hash.substring(1)).click();
+            }
+        } else {
+            $('#general').click();
+        }
+    });
+</script>
+
+<% include ./partials/page-end %>
