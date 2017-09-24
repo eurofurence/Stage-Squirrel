@@ -7,7 +7,10 @@ module.exports = function() {
 
             res.redirect = function() {
                 var params = arguments;
-                if (params.length && params[0].startsWith('/')) {
+                if (params.length &&
+                    !params[0].startsWith(basePath) &&
+                    params[0].startsWith('/')
+                ) {
                     params[0] = basePath + params[0].substr(1);
                 }
                 oldRedirect.apply(res, params);
