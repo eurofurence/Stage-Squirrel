@@ -24,6 +24,7 @@ var url = require('url');
 
 var initAppRouting = require('./app/routes.js');
 var addBaseUrlInfoToView = require('./app/middleware/addBaseUrlInfoToView');
+var redirectHack = require('./app/middleware/redirectHack');
 
 //var configDB = require('./config/database.js');
 
@@ -61,6 +62,7 @@ app.use(passport.session()); // persistent login sessions
 // Add additional middleware
 var baseUrl = url.parse(sqcfg.baseurl);
 app.use(addBaseUrlInfoToView(baseUrl));
+app.use(redirectHack());
 
 // Add static content
 app.use(express.static(__dirname + '/public'));
@@ -71,10 +73,7 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 // routes ======================================================================
 var appRouter = express.Router();
 initAppRouting(appRouter, passport); // load our routes and pass in our app and fully configured passport
-
-var basePath = baseUrl.pathname;
-app.use(basePath, appRouter);
-
+app.use(appRouter);
 
 // launch ======================================================================
 app.listen(sqcfg.listenport, ip);
