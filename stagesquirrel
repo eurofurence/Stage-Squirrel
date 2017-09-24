@@ -90,10 +90,12 @@ read_init_config() {
 
   # When configured user is current user, or no user was set:
   if [ "${run_user}" = "${USER}" ] || [ -z "${run_user}" ] ; then
+
     if [ "$(id --u)" -eq "0" ] ; then 
       echo "Refusing to launch this program as UID 0"
       return 2
     fi
+
     switch_user_context="false"
     cd "${program_home}" # Allows for relative pathes in .conf
 
@@ -120,7 +122,7 @@ read_init_config() {
   if [ -z "${nodejs_bin_dir}" ] ; then
 
     if command -v node > /dev/null 2>&1 ; then
-      nodejs_bin_dir="$(dirname "$(command -v node)" )" # use node from $PATH
+      nodejs_bin_dir="$(dirname "$(command -v node)")" # use node from $PATH
     else 
       echo 'nodejs_bin_dir not configured and no suitable node found in $PATH'
       return 2
@@ -175,8 +177,6 @@ read_init_config() {
     fi
     
   fi 
-
-
 }
 
 
