@@ -70,7 +70,7 @@ for (role of roles) {
                                 <%= event.event_day == null ? '-' : event.event_day.getDate() + "." + (event.event_day.getMonth()+1) + "." + event.event_day.getFullYear() %>
                             </div>
                             <div class="col-sm-2">
-                                <a href="create?id=<%= event.event_id %>">edit Survey</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>create?id=<%= event.event_id %>">edit Survey</a>
                             </div>
                             <div class="col-sm-1">
                                 <% if (event.event_confirmed_version_manager == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
@@ -79,7 +79,7 @@ for (role of roles) {
                                 <% if (event.event_confirmed_version_creator == event.event_max_version) { %><span class="glyphicon glyphicon-ok"></span><% } %>
                             </div>
                             <div class="col-sm-2">
-                                <a href="rider?id=<%= event.event_id %>">create Rider</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>rider?id=<%= event.event_id %>">create Rider</a>
                             </div>
                         </div>
                     <% } %>
@@ -122,7 +122,7 @@ for (role of roles) {
                                 <%= userdb[event.creator_id].user_name %>
                             </div>
                             <div class="col-sm-2">
-                                <a href="create?id=<%= event.event_id %>">edit Survey</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>create?id=<%= event.event_id %>">edit Survey</a>
                             </div>
                             <% for (role of roles) { %>
                                 <% if (role.role_id > 9) { %>
@@ -141,7 +141,7 @@ for (role of roles) {
                                 <% } %>
                             <% } %>
                             <div class="col-sm-2">
-                                <a href="rider?id=<%= event.event_id %>">edit Rider</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>rider?id=<%= event.event_id %>">edit Rider</a>
                             </div>
                         </div>
                     <% } %>

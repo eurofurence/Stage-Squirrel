@@ -4,7 +4,7 @@
 <%
     var create = true;
     var customs = [];
-    if (typeof event != 'undefined') {
+    if (event.length > 0) {
         create = false;
         console.log(event);
         for(var i=0; i < customfields.length; i++) {
@@ -44,17 +44,17 @@
     <div class="col-sm-12">
         <ul class="pagination">
             <% if (version > 1) { %>
-                <li><a href="create?id=<%=event_id%>&version=<%=(version-1)%>"><</a></li>
+                <li><a href="<%= locals.baseUrlInfo.pathname %>create?id=<%=event_id%>&version=<%=(version-1)%>"><</a></li>
             <% } else { %>
                 <li class="disabled"><a href="#"><</a></li>
             <% } %>
             <% for (var i = 1; i <= max_version; i++) { %>
                 <li<%= version == i ? ' class="active"' : '' %>>
-                    <a href="create?id=<%= event_id %>&version=<%= i %>"><%= i %></a>
+                    <a href="<%= locals.baseUrlInfo.pathname %>create?id=<%= event_id %>&version=<%= i %>"><%= i %></a>
                 </li>
             <% } %>
             <% if (version < max_version) { %>
-                <li><a href="create?id=<%=event_id%>&version=<%=(version+1)%>">></a></li>
+                <li><a href="<%= locals.baseUrlInfo.pathname %>create?id=<%=event_id%>&version=<%=(version+1)%>">></a></li>
             <% } else { %>
                 <li class="disabled"><a href="#">></a></li>
             <% } %>
@@ -155,14 +155,16 @@
                                 <div class="col-sm-8">
                                     <select class="form-control" name="event_date">
                                         <option value="">Please pick a day...</option>
-                                        <% var start = new Date(convention[0].date_from); %>
-                                        <% var end = new Date(convention[0].date_to); %>
-                                        <% for (seldate = start; seldate <= end; seldate.setDate(seldate.getDate() + 1)) { %>
-                                            <option value="<%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>" <%=(date == seldate ? 'selected' : '')%> >
-                                                <%=weekday[seldate.getDay()] %>, <%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>
-                                            </option>
-                                            <% console.log(date + " | " + seldate + " | ") %>
-                                            <% console.log(date == seldate ? "ja" : "nein") %>
+                                        <% if (convention.length > 0) { %>
+                                            <% var start = new Date(convention[0].date_from); %>
+                                            <% var end = new Date(convention[0].date_to); %>
+                                            <% for (seldate = start; seldate <= end; seldate.setDate(seldate.getDate() + 1)) { %>
+                                                <option value="<%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>" <%=(date == seldate ? 'selected' : '')%> >
+                                                    <%=weekday[seldate.getDay()] %>, <%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>
+                                                </option>
+                                                <% console.log(date + " | " + seldate + " | ") %>
+                                                <% console.log(date == seldate ? "ja" : "nein") %>
+                                            <% } %>
                                         <% } %>
                                     </select>
                                 </div>

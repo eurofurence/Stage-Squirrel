@@ -6,11 +6,11 @@ var connection = require('./lib/databaseConnection')(config.database);
 var telegram = require('./telegram.js');
 var notifier = require('./lib/notificationService')(telegram, connection);
 
-module.exports = function(app, passport) {
+module.exports = function(router, passport) {
     // =====================================
     // HOME PAGE (with login links) ========
     // =====================================
-    app.get('/', function (req, res) {
+    router.get('/', function(req, res) {
         if (req.isAuthenticated) {
             res.redirect('/profile');
         } else {
@@ -21,18 +21,18 @@ module.exports = function(app, passport) {
     // =====================================
     // ROOTING FOR SUB-PAGES  ==============
     // =====================================
-    require('./routes/admin')(app, passport, connection, notifier);
-    require('./routes/convention')(app, passport, connection);
-    require('./routes/create')(app, passport, connection, notifier);
-    require('./routes/editcreate')(app, passport, connection);
-    require('./routes/home')(app, passport, connection);
-    require('./routes/login')(app, passport);
-    require('./routes/logout')(app, passport);
-    require('./routes/manage')(app, passport, connection);
-    require('./routes/profile')(app, passport, connection, notifier);
-    require('./routes/rider')(app, passport, connection, notifier);
-    require('./routes/roleview')(app, passport, connection);
-    require('./routes/signup')(app, passport, connection);
-    require('./routes/stages')(app, passport, connection);
-    require('./routes/surveys')(app, passport, connection);
+    require('./routes/admin')(router, passport, connection, notifier);
+    require('./routes/convention')(router, passport, connection);
+    require('./routes/create')(router, passport, connection, notifier);
+    require('./routes/editcreate')(router, passport, connection);
+    require('./routes/home')(router, passport, connection);
+    require('./routes/login')(router, passport);
+    require('./routes/logout')(router, passport);
+    require('./routes/manage')(router, passport, connection);
+    require('./routes/profile')(router, passport, connection, notifier);
+    require('./routes/rider')(router, passport, connection, notifier);
+    require('./routes/roleview')(router, passport, connection);
+    require('./routes/signup')(router, passport, connection);
+    require('./routes/stages')(router, passport, connection);
+    require('./routes/surveys')(router, passport, connection);
 };

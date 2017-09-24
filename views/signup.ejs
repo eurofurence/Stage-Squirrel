@@ -10,7 +10,7 @@
         <div class="alert alert-danger"><%= message %></div>
     <% } %>
     <!-- LOGIN FORM -->
-    <form class="js-signup-form" action="/signup" method="post">
+    <form class="js-signup-form" action="<%= locals.baseUrlInfo.pathname %>signup" method="post">
         <input type="hidden" name="auth_doubleoptin" value="<%= cfg['AUTH_DOUBLEOPTIN'].value %>" />
         <div class="form-group">
             <label>Username</label>
@@ -44,10 +44,10 @@
         <button type="submit" class="btn btn-primary btn-lg" id="validate">Signup</button>
     </form>
     <hr>
-    <p>Already have an account? <a href="/login">Login</a></p>
+    <p>Already have an account? <a href="<%= locals.baseUrlInfo.pathname %>ogin">Login</a></p>
 </div>
 <div class="col-sm-2" id="sq-logo">
-	<img src="images/sq-logo.png">
+	<img src="<%= locals.baseUrlInfo.pathname %>images/sq-logo.png">
 </div>
 
 <% include ./partials/page-end %>

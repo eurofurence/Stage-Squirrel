@@ -20,11 +20,12 @@ module.exports = function(app, passport, connection, notifier) {
                                     console.log(eventrows);
 
                                     var version = 1;
-                                    if (eventrows != null) {
-                                        version = eventrows[0].event_max_version;
+                                    var events = eventrows || [];
+                                    if (events.length > 0) {
+                                        version = events[0].event_max_version;
                                         if (typeof req.query.version != 'undefined' &&
                                             req.query.version > 0 &&
-                                            req.query.version <= eventrows[0].event_max_version
+                                            req.query.version <= events[0].event_max_version
                                         ) {
                                             version = req.query.version;
                                         }
@@ -43,16 +44,16 @@ module.exports = function(app, passport, connection, notifier) {
                                                         res.render('create.ejs', {
                                                             nav: 'create',
                                                             user: req.user,
-                                                            stages: stagerows,
-                                                            elements: elementrows,
-                                                            roles: rolesrows,
-                                                            convention: conventionrows,
-                                                            configurations: cfgrows,
-                                                            event: eventdetailrows,
-                                                            eventinfo: eventrows,
-                                                            customfields: customrows,
-                                                            creator: creatorresult,
-                                                            managerlist: managerrows
+                                                            stages: stagerows || [],
+                                                            elements: elementrows || [],
+                                                            roles: rolesrows || [],
+                                                            convention: conventionrows || [],
+                                                            configurations: cfgrows || [],
+                                                            event: eventdetailrows || [],
+                                                            eventinfo: events,
+                                                            customfields: customrows || [],
+                                                            creator: creatorresult || [],
+                                                            managerlist: managerrows || [],
                                                         });
                                                     } else {
                                                         console.log("User has no rights to access event.");

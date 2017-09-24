@@ -7,40 +7,40 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#"><img src="/images/sq-logo.png" class="sq-navbar-brand"> Stage Squirrel</a>
+            <a class="navbar-brand" href="#"><img src="<%= locals.baseUrlInfo.pathname %>images/sq-logo.png" class="sq-navbar-brand"> Stage Squirrel</a>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
             <ul class="nav navbar-nav">
                 <li <%= nav == 'home' ? 'class=active' : '' %>>
-                    <a href="home"><span class="glyphicon glyphicon-home"></span> Home</a>
+                    <a href="<%= locals.baseUrlInfo.pathname %>home"><span class="glyphicon glyphicon-home"></span> Home</a>
                 </li>
                 <% if (user.isManager == 1) { %>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Managing <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li <%= nav == 'convention' ? 'class=active' : '' %>>
-                                <a href="convention">Conventions</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>convention">Conventions</a>
                             </li>
                             <li <%= nav == 'stages' ? 'class=active' : '' %>>
-                                <a href="stages">Stages</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>stages">Stages</a>
                             </li>
                             <li <%= nav == 'templates' ? 'class=active' : '' %>>
-                                <a href="templates">Templates</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>templates">Templates</a>
                             </li>
                         </ul>
                     </li>
                 <% } %>
                 <% if (user.isManager == 1) { %>
                     <li <%= nav == 'manage' ? 'class=active' : '' %>>
-                        <a href="manage">Manage Events</a>
+                        <a href="<%= locals.baseUrlInfo.pathname %>manage">Manage Events</a>
                     </li>
                 <% } %>
                 <% if (user.isCreator == 1) { %>
                     <li <%= nav == 'create' ? 'class=active' : '' %>>
-                        <a href="create"><span class="glyphicon glyphicon-plus"></span> Create Survey</a>
+                        <a href="<%= locals.baseUrlInfo.pathname %>create"><span class="glyphicon glyphicon-plus"></span> Create Survey</a>
                     </li>
                     <li <%= nav == 'surveys' ? 'class=active' : '' %>>
-                        <a href="surveys"><span class="glyphicon glyphicon-list"></span> My Surveys</a>
+                        <a href="<%= locals.baseUrlInfo.pathname %>surveys"><span class="glyphicon glyphicon-list"></span> My Surveys</a>
                     </li>
                 <% } %>
                 <% for (var role of user.user_roles) { %>
@@ -51,7 +51,7 @@
                             glyphicon = '<span class="glyphicon glyphicon-' + role.role_glyphicon + '"></span> ';
                         <% } %>
                         <li <%= nav == 'role_' + role.role_title.toLowerCase() ? 'class=active' : '' %>>
-                            <a href="roleview?role=<%= role.role_title.toLowerCase() %>"><%- glyphicon %><%= role.role_title %></a>
+                            <a href="<%= locals.baseUrlInfo.pathname %>roleview?role=<%= role.role_title.toLowerCase() %>"><%- glyphicon %><%= role.role_title %></a>
                         </li>
                     <% } %>
                 <% } %>
@@ -62,11 +62,11 @@
                 </li>
                 <% if (user.isAdmin == 1) { %>
                     <li <%= nav == 'admin' ? 'class=active' : '' %>>
-                        <a href="admin"><span class="glyphicon glyphicon-cog"></span> Settings</a>
+                        <a href="<%= locals.baseUrlInfo.pathname %>admin"><span class="glyphicon glyphicon-cog"></span> Settings</a>
                     </li>
                 <% } %>
                 <li <%= nav == 'profile' ? 'class=active' : '' %>>
-                    <a href="profile"><span class="glyphicon glyphicon-user"></span> <%= user.user_name %></a>
+                    <a href="<%= locals.baseUrlInfo.pathname %>profile"><span class="glyphicon glyphicon-user"></span> <%= user.user_name %></a>
                 </li>
             </ul>
         </div>

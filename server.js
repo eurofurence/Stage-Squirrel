@@ -20,6 +20,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
+var url = require('url');
+
+var initAppRouting = require('./app/routes.js');
+var addBaseUrlInfoToView = require('./app/middleware/addBaseUrlInfoToView');
+
 //var configDB = require('./config/database.js');
 
 
@@ -52,12 +57,24 @@ app.set('view engine', 'ejs'); // set up ejs for templating
 app.use(session({ secret: sqcfg.sessionsecret })); // session secret
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
+
+// Add additional middleware
+var baseUrl = url.parse(sqcfg.baseurl);
+app.use(addBaseUrlInfoToView(baseUrl));
+
+// Add static content
 app.use(express.static(__dirname + '/public'));
-app.use('/favicon.ico', express.static('favicon.ico'));
+app.use(baseUrl.pathname + 'favicon.ico', express.static('favicon.ico'));
+
 app.use(flash()); // use connect-flash for flash messages stored in session
 
 // routes ======================================================================
-require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
+var appRouter = express.Router();
+initAppRouting(appRouter, passport); // load our routes and pass in our app and fully configured passport
+
+var basePath = baseUrl.pathname;
+app.use(basePath, appRouter);
+
 
 // launch ======================================================================
 app.listen(sqcfg.listenport, ip);

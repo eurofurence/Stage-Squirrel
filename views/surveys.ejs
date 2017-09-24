@@ -72,7 +72,7 @@ for (rider of riders) {
                                 <% } %>
                             </div>
                             <div class="col-sm-2">
-                                <a href="create?id=<%= event.event_id %>">show Survey</a>
+                                <a href="<%= locals.baseUrlInfo.pathname %>create?id=<%= event.event_id %>">show Survey</a>
                             </div>
                             <div class="col-sm-2">
                                 <%= event.event_max_version %>

@@ -76,7 +76,7 @@ for (one_role of riderroles) {
                             </div>
                         <% } %>
                         <div class="col-sm-2">
-                            <a href="rider?id=<%= event.event_id %>#<%= role.role_title.toLowerCase() %>">show Rider</a>
+                            <a href="<%= locals.baseUrlInfo.pathname %>rider?id=<%= event.event_id %>#<%= role.role_title.toLowerCase() %>">show Rider</a>
                         </div>
                     </div>
                 <% } %>

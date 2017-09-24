@@ -10,7 +10,7 @@
         <div class="well">
             <h3><span class="glyphicon glyphicon-globe"></span> Global</h3>
             <p>
-                <form action="/admin" method="post">
+                <form action="<%= locals.baseUrlInfo.pathname %>admin" method="post">
                     <% for (cfg of configurations) { %>
                     <div class="form-group">
                         <label><%= cfg.configuration_title %></label>
@@ -37,7 +37,7 @@
                 </tr>
             </thead>
             <tbody>
-                <form action="/admin" method="post">
+                <form action="<%= locals.baseUrlInfo.pathname %>admin" method="post">
                     <input type="hidden" name="actionType" value="user">
                     <% for (one of allusers) { %>
                     <tr>

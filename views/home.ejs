@@ -46,26 +46,30 @@ roledb[0].role_title = 'all';
         <div class="well">
             <h3><span class="fa fa-info"></span> Info</h3>
             <p>
-                Welcome to StageSquirrel, <%= user.user_name %>!
-                <br>
-                <br>
-                The current convention will be <b><%- user.currentConvention.convention_name %></b>.
-                It will take place from <%-
-                    user.currentConvention.date_from.getDate() + '.' +
-                    (user.currentConvention.date_from.getMonth() + 1) + '.' +
-                    user.currentConvention.date_from.getFullYear()
-                %> to <%-
-                    user.currentConvention.date_to.getDate() + '.' +
-                    (user.currentConvention.date_to.getMonth() + 1) + '.' +
-                    user.currentConvention.date_to.getFullYear()
-                %>.
-                <% var now = new Date(); %>
-                <% if (now < user.currentConvention.date_from) { %>
-                    <h3>
-                        Start in <%=
-                            (Math.floor((user.currentConvention.date_from - now) / 86400000))
-                        %> Day(s)
-                    </h3>
+                <% if (user.currentConvention.convention_name !== undefined) { %>
+                    Welcome to StageSquirrel, <%= user.user_name %>!
+                    <br>
+                    <br>
+                    The current convention will be <b><%- user.currentConvention.convention_name %></b>.
+                    It will take place from <%-
+                        user.currentConvention.date_from.getDate() + '.' +
+                        (user.currentConvention.date_from.getMonth() + 1) + '.' +
+                        user.currentConvention.date_from.getFullYear()
+                    %> to <%-
+                        user.currentConvention.date_to.getDate() + '.' +
+                        (user.currentConvention.date_to.getMonth() + 1) + '.' +
+                        user.currentConvention.date_to.getFullYear()
+                    %>.
+                    <% var now = new Date(); %>
+                    <% if (now < user.currentConvention.date_from) { %>
+                        <h3>
+                            Start in <%=
+                                (Math.floor((user.currentConvention.date_from - now) / 86400000))
+                            %> Day(s)
+                        </h3>
+                    <% } %>
+                <% } else { %>
+                    There is no current convention.
                 <% } %>
             </p>
         </div>
@@ -93,6 +97,7 @@ roledb[0].role_title = 'all';
                         </span>
                     </div>
                     <div class="panel-body">
+
                         <% if (block.type_id == 1) { %>
                             User <b><%- userdb[block.sender_id].user_name %></b> created a new Stage Survey with category <%- event.event_categories %> for <%- event.event_day.getDate() + '.' + (event.event_day.getMonth() + 1) + '.' + event.event_day.getFullYear() %> on <%- stagedb[event.stage_id].stage_name %>.
                         <% } else if (block.type_id == 2) { %>
