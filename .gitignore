@@ -3,5 +3,5 @@
 .vscode
 config/*.conf
 config/*.js
-log/*.log
+log
 node_modules
