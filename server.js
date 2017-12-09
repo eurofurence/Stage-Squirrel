@@ -36,7 +36,7 @@ var redirectHack = require('./app/middleware/redirectHack');
 //connection.connect();
 
 
-require('./config/passport')(passport); // pass passport for configuration
+require('./app/passport')(passport); // pass passport for configuration
 
 // set up our express application
 //app.use(morgan('dev')); // log every request to the console

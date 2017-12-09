@@ -1,8 +1,7 @@
-var config = require('./config.js');
-var connection = require('../app/lib/databaseConnection')(config.database);
+var config = require('../config/config.js');
+var connection = require('./databaseConnection')(config.database);
 var crypt = require('bcrypt');
-var util = require('../app/lib/utilities');
-// config/passport.js
+var util = require('./utilities');
 
 // load all the things we need
 var LocalStrategy = require('passport-local').Strategy;
@@ -10,7 +9,6 @@ var LocalStrategy = require('passport-local').Strategy;
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {
-
     // =========================================================================
     // passport session setup ==================================================
     // =========================================================================
@@ -210,4 +208,4 @@ module.exports = function(passport) {
                 });
             });
         }));
-}
+};

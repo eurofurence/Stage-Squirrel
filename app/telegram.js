@@ -6,9 +6,9 @@ var url = require('url');
 // Telegram Bot Options
 var bot = require('node-telegram-bot-api');
 try {
-    var locale = require('../config/locale_' + config.locale);
+    var locale = require('./locales/' + config.locale);
 } catch (ex) {
-    var locale = require('../config/locale_en');
+    var locale = require('./locales/en');
 }
 var api_token = "";
 
