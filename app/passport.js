@@ -1,7 +1,7 @@
 var config = require('../config/config.js');
-var connection = require('./databaseConnection')(config.database);
+var connection = require('./lib/databaseConnection')(config.database);
 var crypt = require('bcrypt');
-var util = require('./utilities');
+var util = require('./lib/utilities');
 
 // load all the things we need
 var LocalStrategy = require('passport-local').Strategy;
