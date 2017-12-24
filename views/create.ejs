@@ -33,8 +33,11 @@
     var version = create ? 1 : event[0].event_version;
     var max_version = create ? 1 : eventinfo[0].event_max_version;
     var event_creator = create ? user.user_id : creator[0].creator_id;
-    console.log("DETAILED MERGED EVENT");
-    console.log(event);
+
+    // ToDo: A hack to fix a bug before refactoring, get rid of it later.
+    if (date != '') {
+        date = (date.getYear()+1900) + '-' + (date.getMonth()+1) + '-' + date.getDate();
+    }
 %>
 
 <div class="page-header text-center">
@@ -159,11 +162,10 @@
                                             <% var start = new Date(convention[0].date_from); %>
                                             <% var end = new Date(convention[0].date_to); %>
                                             <% for (seldate = start; seldate <= end; seldate.setDate(seldate.getDate() + 1)) { %>
-                                                <option value="<%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>" <%=(date == seldate ? 'selected' : '')%> >
+                                                <% var isodate = (seldate.getYear()+1900) + '-' + (seldate.getMonth()+1) + '-' + seldate.getDate(); %>
+                                                <option value="<%= isodate %>" <%= (date == isodate ? 'selected=selected' : '') %> >
                                                     <%=weekday[seldate.getDay()] %>, <%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>
                                                 </option>
-                                                <% console.log(date + " | " + seldate + " | ") %>
-                                                <% console.log(date == seldate ? "ja" : "nein") %>
                                             <% } %>
                                         <% } %>
                                     </select>

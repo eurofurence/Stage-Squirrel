@@ -75,6 +75,10 @@ module.exports = function(app, passport, connection, notifier) {
 
     app.post('/create', isLoggedIn, function(req, res) {
         if (req.user.isCreator || req.user.isManager) {
+            if (req.body.event_date === '') {
+                res.redirect('/create');
+                return;
+            }
             var event_id = req.body.event_id;
             if (typeof req.body.accept != 'undefined') {
                 var version = parseInt(req.body.version);

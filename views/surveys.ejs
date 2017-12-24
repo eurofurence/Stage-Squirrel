@@ -69,6 +69,8 @@ for (rider of riders) {
                                         (riderdb[event.event_id].startdate.getMinutes() < 10 ? '0' : '') + riderdb[event.event_id].startdate.getMinutes();
                                     %>
                                     <%= time %>
+                                <% } else { %>
+                                    (no rider set)
                                 <% } %>
                             </div>
                             <div class="col-sm-2">
