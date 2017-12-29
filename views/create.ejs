@@ -1,433 +1,458 @@
-<!-- views/profile.ejs -->
-<!doctype html>
-<% var create = true;
-var customs = [];
-if (event != null) {
-	create = false;
-	console.log(event);
-    for(var i=0; i < customfields.length; i++) {
-		var row = customfields[i];
-		if (customs["#" + row.custom_id] == undefined) {
-			customs["#" + row.custom_id] = [];
-		}
-		if (row.custom_value == null) { row.custom_value = ''; }
-		customs["#" + row.custom_id].push(row.custom_value);
+<% var title = 'Stage Squirrel - Create Stage Survey'; %>
+<% include ./partials/page-begin %>
+
+<%
+    var create = true;
+    var customs = [];
+    if (event.length > 0) {
+        create = false;
+        console.log(event);
+        for(var i=0; i < customfields.length; i++) {
+            var row = customfields[i];
+            if (customs["#" + row.custom_id] == undefined) {
+                customs["#" + row.custom_id] = [];
+            }
+            if (row.custom_value == null) { row.custom_value = ''; }
+            customs["#" + row.custom_id].push(row.custom_value);
+        }
+        console.log(customs);
     }
-	console.log(customs);
-} 
-	var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-	
-	var event_id = create ? '0' : event[0].event_id;
-	var event_name = create ? '' : event[0].event_title;
-	var stage_id = create ? '' : event[0].stage_id;
-	var date = create ? '' : event[0].event_day;
-	var time_pre = create ? '' : event[0].event_time_pre;
-	var time_post = create ? '' : event[0].event_time_post;
-	var time_dur = create ? '' : event[0].event_time_dur;
-	var event_type = create ? '' : event[0].event_categories;
-	var event_desc = create ? '' : event[0].event_description;
-	var event_expl = create ? '' : event[0].event_explaination;
-	var version = create ? 1 : event[0].event_version;
-	var max_version = create ? 1 : eventinfo[0].event_max_version;
-	var event_creator = create ? user.user_id : creator[0].creator_id;
-	console.log("DETAILED MERGED EVENT");
-	console.log(event);
+
+    var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    var event_id = create ? '0' : event[0].event_id;
+    var event_name = create ? '' : event[0].event_title;
+    var stage_id = create ? '' : event[0].stage_id;
+    var date = create ? '' : event[0].event_day;
+    var time_pre = create ? '' : event[0].event_time_pre;
+    var time_post = create ? '' : event[0].event_time_post;
+    var time_dur = create ? '' : event[0].event_time_dur;
+    var event_type = create ? '' : event[0].event_categories;
+    var event_desc = create ? '' : event[0].event_description;
+    var event_expl = create ? '' : event[0].event_explaination;
+    var version = create ? 1 : event[0].event_version;
+    var max_version = create ? 1 : eventinfo[0].event_max_version;
+    var event_creator = create ? user.user_id : creator[0].creator_id;
+
+    // ToDo: A hack to fix a bug before refactoring, get rid of it later.
+    if (date != '') {
+        date = (date.getYear()+1900) + '-' + (date.getMonth()+1) + '-' + date.getDate();
+    }
 %>
-<html>
-<head>
-    <title>Stage Squirrel - Admin Configuration</title>
-    <% include ./partials/head %>
-	<script>
-	function addRow(btn) {
-		var newNode = btn.previousElementSibling.cloneNode("true");
-		if (newNode.getElementsByClassName('btn-danger').length == 0) {
-			var xbtn = document.createElement("input");
-			xbtn.setAttribute("type","button");
-			xbtn.setAttribute("value","x");
-			xbtn.setAttribute("class","btn btn-danger");	
-			xbtn.setAttribute("onClick","delRow(this)")
-			newNode.appendChild(xbtn); 
-		}
-		
-		if (newNode.getElementsByClassName('increase').length > 0) {
-			newNode.getElementsByClassName('increase')[0].innerHTML = btn.parentNode.getElementsByClassName('row').length + 1;
-		}
-		
-		btn.parentNode.insertBefore(newNode, btn);
-	}
-	function delRow(btn) {
-		var parent = btn.parentNode.parentNode;
-		btn.parentNode.remove();
-		if (parent.getElementsByClassName('increase').length > 0) {
-			var Nodes = parent.getElementsByClassName('increase');
-			for (var i = 0; i < Nodes.length; i++) {
-				Nodes[i].textContent = i+1;
-			}
-		}
-	}
-	</script>
-</head>
-<body>
 
-    <% include ./partials/nav %>	
-
-<div class="container">
-
-    <div class="page-header text-center">
-        <h1>Create Stage Survey</h1>
-    </div>
-	<% if (max_version > 1) { %>
-	<div class="col-sm-12">
-	<ul class="pagination">
-	  <% if (version > 1) { %>
-	  	<li><a href="create?id=<%=event_id%>&version=<%=(version-1)%>"><</a></li>
-	  <% } else { %>
-	  	<li class="disabled"><a href="#"><</a></li>
-	  <% }
-	  for (var i = 1; i <= max_version; i++) { %>
-	  	<li<%= version == i ? " class=active" : "" %>><a href="create?id=<%= event_id %>&version=<%= i %>"><%= i %></a></li>
-	  <% } 
-	  if (version < max_version) { %>
-	  	<li><a href="create?id=<%=event_id%>&version=<%=(version+1)%>">></a></li>
-	  <% } else { %>
-	  	<li class="disabled"><a href="#">></a></li>
-	  <% } %>
-	</ul>
-	</div>
-	<% } %>
-	<% if (!create) { %>
-	<div class="col-sm-12">
-		<% if (version <= eventinfo[0].event_confirmed_version_manager) { %>
-			<h3 style="display:inline-block;"><span class="label label-success">Accepted by Stage Manager: Yes</span></h3>
-		<% } else { %>
-			<h3 style="display:inline-block;"><span class="label label-warning">Accepted by Stage Manager: No</span></h3>
-			<% if (user.isManager) { %>
-				<form method="post" style="display:inline;">
-				<button type="submit" class="btn btn-primary btn-sm" name="accept" value="manager" style="margin-top: -5px;">accept</button>
-				<input name="version" type="hidden" value="<%=version %>">
-				<input name="event_id" type="hidden" value="<%=event_id %>">
-				</form>
-			<% } %>
-		<% } %>
-	</div>
-	<div class="col-sm-12">
-		<% if (version <= eventinfo[0].event_confirmed_version_creator) { %>
-			<h3 style="display:inline-block;"><span class="label label-success" align="right">Accepted by Event Manager: Yes</span></h3>
-		<% } else { %>
-			<h3 style="display:inline-block;"><span class="label label-warning" align="right">Accepted by Event Manager: No</span></h3>
-			<% if (user.user_id == event_creator) { %>
-				<form method="post" style="display:inline;">
-				<button type="submit" class="btn btn-primary btn-sm" name="accept" value="creator" style="margin-top: -5px;">accept</button>
-				<input name="version" type="hidden" value="<%=version %>">
-				<input name="event_id" type="hidden" value="<%=event_id %>">
-				<input name="event_manager" type="hidden" value="<%=event_creator %>">
-				</form>
-			<% } %>
-		<% } %>
-	</div>
-	<% } %>
-	
-    <div class="row">
-		<div class="col-sm-12">
-	        <row>
-	          <div class="col-lg-12">
-	            <form class="form-horizontal"  method="post" onsubmit="return confirm('Do you really want to <%= event_id > 0 ? 'confirm the changes' : 'create that survey' %>?');" %>
-				  <input name="event_id" type="hidden" value="<%=event_id %>">
-				  <input name="version" type="hidden" value="<%=version %>">
-	              <div class="panel panel-default">
-	                <div class="panel-heading"><strong>Tell us about your event</strong></div>
-	                <div class="panel-body">
-	                  <p>Basic info up front</p>
-				   <% if (user.isManager && create) { %>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Who will be the Event Manager?</label>
-	                    <div class="col-sm-8">
-	                      <select class="form-control" name="event_manager">
-	                        <option value="<%=event_creator %>">Me</option>
-							<% for (manager of managerlist) { %>
-	                        <option value=<%=manager.user_id %>><%=manager.user_name %></option>
-							<% } %>
-	                      </select>
-	                    </div>
-	                  </div>
-				   <% } else { %>
-   				  	 <input name="event_manager" type="hidden" value="<%=event_creator %>">
-				   <% } %>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Your events name?</label>
-	                    <div class="col-sm-8">
-	                      <input class="form-control" name="event_name" value="<%=event_name %>">
-	                    </div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">It will take place on the:</label>
-	                    <div class="col-sm-8">
-	                      <select class="form-control" name="stage_id">
-	                        <option value="">Please choose...</option>
-							<% for (stage of stages) { %>
-	                        <option value=<%=stage.stage_id %> <%=stage_id == stage.stage_id ? "selected" : ""%>><%=stage.stage_name %></option>
-							<% } %>
-	                      </select>
-	                    </div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Day of week / Date:</label>
-	                    <div class="col-sm-8">
-	                      <select class="form-control" name="event_date">
-	                        <option value="">Please pick a day...</option>
-							<% var start = new Date(convention[0].date_from); 
-							var end = new Date(convention[0].date_to);
-							for (seldate = start; seldate <= end; seldate.setDate(seldate.getDate() + 1)) { %>
-								<option value="<%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>" <%=+date == +seldate ? "selected" : ""%>><%=weekday[seldate.getDay()] %>, <%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %></option>
-								<% console.log(date + " | " + seldate + " | ") %>
-								<% console.log(+date == +seldate ? "ja" : "nein") %>
-							<% } %>
-	                      </select>
-	                    </div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label class="col-sm-7 control-label">Time you will need for setup before the actual event:</label>
-	                    <div class="col-sm-3">
-	                      <input class="form-control" name="time_pre" type="number" min=0 max=120 value="<%=time_pre %>">
-	                    </div>
-					<div class="col-sm-2">
-					  <label class="control-label">Minutes</label>
-					</div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-7 control-label">The overall duration of your event:</label>
-	                    <div class="col-sm-3">
-	                      <input class="form-control" name="time_dur" type="number" min=0 max=120 value="<%=time_dur %>">
-	                    </div>
-					<div class="col-sm-2">
-					  <label class="control-label">Minutes</label>
-					</div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-7 control-label">Time you'll need for breakdown right after the event:</label>
-	                    <div class="col-sm-3">
-	                      <input class="form-control" name="time_post" type="number" min=0 max=120 value="<%=time_post %>">
-	                    </div>
-					<div class="col-sm-2">
-					  <label class="control-label">Minutes</label>
-					</div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">What fits your event most?</label>
-	                    <div class="col-sm-8">
-	                      <div class="checkbox">
-	                        <label class="radio-inline"><input type="radio" name="event_type" value="Talk" <%=event_type == "Talk" ? "checked" : ""%>>Talk</label>
-	                        <label class="radio-inline"><input type="radio" name="event_type" value="Concert" <%=event_type == "Concert" ? "checked" : ""%>>Concert</label>
-	                        <label class="radio-inline"><input type="radio" name="event_type" value="Theater" <%=event_type == "Theater" ? "checked" : ""%>>Theater</label>
-	                        <label class="radio-inline"><input type="radio" name="event_type" value="Gameshow"<%=event_type == "Gameshow" ? "checked" : ""%>>Gameshow</label>
-	                        <label class="radio-inline"><input type="radio" name="event_type" value="Dance"<%=event_type == "Dance" ? "checked" : ""%>>Dance</label>
-	                        <label class="radio-inline"><input type="radio" name="event_type" value="Other" <%=event_type == "Other" || event_type == '' ? "checked" : ""%>>Other</label>
-	                      </div>
-	                    </div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Please copy+paste your event­ description from the program</label>
-	                    <div class="col-sm-8">
-	                      <textarea class="form-control" id="event_desc" name="event_desc"><%=event_desc %></textarea>
-	                    </div>
-	                  </div>
-	                  <div class="form-group">
-	                    <label for="exampleInputEmail1" class="col-sm-4 control-label">Okay, what is really going to happen?</label>
-	                    <div class="col-sm-8">
-	                      <textarea class="form-control" id="event_expl" name="event_expl"><%=event_expl %></textarea>
-	                    </div>
-	                  </div>
-	                </div>
-	              </div>
-				 
-				<% 
-					for (panel of elements) { 
-					 if (panel.element_type == 1) { %>
-	  	              <div class="panel panel-default">
-	  	                <div class="panel-heading"><strong><%= panel.element_label %></strong></div>
-	  	                <div class="panel-body">
-	  	                  <p><%= panel.element_value %></p>
-						<% for (element of elements) {
-							if (element.parent_id == panel.element_id) {
-								var customvalues = typeof customs['#' + element.element_id] == 'undefined' ? [ '' ] : customs['#' + element.element_id];
-											 console.log(customvalues) 
-								switch (element.element_type) {
-									case 2: %>
-		  	                  <div class="form-group row">
-		  	                    <label class="col-sm-4 control-label"><%= element.element_label %></label>
-		  	                    <div class="col-sm-8">
-		  	                      <input class="form-control" name="custom<%= element.element_id %>" value="<%=customvalues[0] %>">
-		  	                    </div>
-		  	                  </div>
-									<% break;
-									case 3: %>
-									<div class="row">
-									<% if (element.element_label != null) { %>
-									<label class="col-xs-6"><%= element.element_label %></label>
-									<div class="col-xs-6 nopadding">
-									<% } else { %>
-									<div class="col-xs-12 nopadding">
-									<% } 
-									if (element.element_tags != null && element.element_tags.search('multiline') > -1) { %>
-				                      <textarea class="form-control" name="custom<%= element.element_id %>"><%=customvalues[0] %></textarea>
-												<% } else { %>
-	                      <input class="form-control noroundcorner" name="custom<%= element.element_id %>" value="<%=customvalues[0] %>">
-												<% } %>
-				                    </div>
-				                    </div>
-									<% break;
-									case 4: 
-									var options = element.element_value.split(';'); %>
-									<div class="row">
-									<% if (element.element_label != null) { %>
-									<label class="col-xs-6"><%= element.element_label %></label>
-									<div class="col-xs-6 nopadding">
-									<% } else { %>
-									<div class="col-xs-12 nopadding">
-									<% } %>
-				                      <select class="form-control" name="custom<%= element.element_id %>">
-				                        <option value="">Please choose</option>
-				                        <% for (var j = 0; j < options.length; j++) { %> 
-										<option value="<%= j+1 %>" <%=customvalues[0] == j+1 ? 'selected' : '' %>><%= options[j] %></option>
-										<% } %>
-				                      </select>
-				                    </div>
-				                    </div>
-									
-									
-									
-									<% break;
-									case 5: %>
-									
-									
-									
-									<% break;
-									case 6: 
-									case 7: 
-									var options = element.element_value.split(';');
-									var labelwidth = 12;
-									var valuewidth = 2;
-									if (options.length == 2) {
-										labelwidth = 6;
-										valuewidth = 3;
-									} else if (options.length == 3) {
-										labelwidth = 6;
-										valuewidth = 2;
-									} else if (options.length == 4) {
-										valuewidth = 3;
-									} %>
-			    	                  <div class="row">
-			    	                    <label class="col-xs-<%= labelwidth %> nopadding"><%= element.element_label %></label>
-										<% for (var i = 0; i < options.length; i++) { %>
-										<% var checked = ''; %>
-										<% for (var j = 0; j < customvalues.length; j++) { if (i+1 == customvalues[j]) { checked = 'checked'; } } %>
-			    	                    <div class="col-xs-<%= valuewidth %> nopadding">
-			  	                      <label class="<%= element.element_type == 6 ? "checkbox" : "radio" %>-inline"><input name="custom<%= element.element_id %>" type=<%= element.element_type == 6 ? "checkbox" : "radio" %> value="<%= i+1 %>" <%=checked %>><%= options[i] %></label>
-			    	                    </div>
-										<% } %>
-			    	                  </div>
-									
-									
-									<% break;
-									case 8: 
-										if (element.element_label != null) {
-											var headlines = element.element_label.split(';');
-											var width = 12 / headlines.length;
-											for (var i = 0; i < headlines.length; i++) { %>
-												<label for="exampleInputEmail1" class="col-xs-<%= width %> control-label"><%= headlines[i] %></label>
-											<% }
-										} 
-										var row = [];
-										for (col of elements) {
-											if (col.parent_id == element.element_id) {
-												row.push(col);
-											}
-										}
-										
-										var customcellvalues = []
-										for (var i = 0; i < row.length; i++) {
-											customcellvalues[i] = typeof customs['#' + row[i].element_id] == 'undefined' ? [ '' ] : customs['#' + row[i].element_id];
-										}
-										
-										
-										width = 12 / row.length; 
-										var rowcount = 1;  
-										if (typeof customs['#' + row[0].element_id] != 'undefined') { rowcount= customs['#' + row[0].element_id].length; }
-										if (typeof customs['#' + row[1].element_id] != 'undefined' && rowcount == 1) { rowcount= customs['#' + row[1].element_id].length; }
-										for (var j = 0; j < rowcount; j++) {
-											%>
-											  <div class="row">
-											<%
-											for (var i = 0; i < row.length; i++) {
-												switch (row[i].element_type) {
-													case 2: %>
-							<label class="col-sm-<%= width %> control-label"><%= row[i].element_label %></label>
-													<% break;
-													case 3: 
-													if (row[i].element_label != null) { %>
-							<label class="col-sm-<%= width %> control-label"><%= row[i].element_label %></label>
-												
-													<% }
-													if (row[i].element_tags != null && row[i].element_tags.search('multiline') > -1) { %>
-		                    <div class="col-sm-<%= width %>">
-		                      <textarea class="form-control" name="custom<%= row[i].element_id %>"><%=typeof customs['#' + row[i].element_id] == 'undefined' ? '' : customs['#' + row[i].element_id][j] %></textarea>
-		                    </div>						
-													<% } else { %>
-												
-		                    <div class="col-xs-<%= width %> nopadding">
-		                      <input class="form-control noroundcorner" name="custom<%= row[i].element_id %>" value="<%=typeof customs['#' + row[i].element_id] == 'undefined' ? '' : customs['#' + row[i].element_id][j] %>">
-		                    </div>			
-													<% }
-													break;
-													case 4: 
-													var options = row[i].element_value.split(';'); %>
-								                    <div class="col-xs-<%= width %> nopadding">
-								                      <select class="form-control" name="custom<%= row[i].element_id %>">
-								                        <option value="">Please choose</option>
-								                        <% for (var k = 0; k < options.length; k++) { %> 
-														<option value="<%= k+1 %>" <%=typeof customs['#' + row[i].element_id] != 'undefined' && customs['#' + row[i].element_id][j] == k+1 ? 'selected' : '' %>><%= options[k] %></option>
-														<% } %>
-								                      </select>
-								                    </div>
-												
-													<% 
-													break;
-													case 9: %>
-								<label class="col-sm-<%= width %> control-label increase"><%=j+1 %></label>
-													<% break;
-												}
-											}
-											if (j > 0) { %>
-											<input type="button" value="x" class="btn btn-danger" onclick="delRow(this)">
-											<% } %>
-											</div>
-										<% }									
-										if (element.element_tags != null && element.element_tags.search('no-expand') > -1) { 
-										} else { %>
-											<input type="button" class="btn btn-primary" value="add Row" onclick="addRow(this)">
-										<% }
-										break; 
-										case 10: %>
-										 <p><%= element.element_value %></p>
-										<% break;
-								} 
-								} 
-						} %>
-		                </div>
-		              </div>						
-					<% } 
-				} %>
-				<% if (version == max_version) { %>
-					<button type="submit" name="action" class="btn btn-primary"><%= create ? 'create Event' : 'update Event' %></button>
-				<% } %>
-		          </form>
-		       </div>
-	        </row>
-		</div>
-
-    </div>
-	
-
+<div class="page-header text-center">
+    <h1>Create Stage Survey</h1>
 </div>
-</body>
-</html>
+<% if (max_version > 1) { %>
+    <div class="col-sm-12">
+        <ul class="pagination">
+            <% if (version > 1) { %>
+                <li><a href="<%= locals.baseUrlInfo.pathname %>create?id=<%=event_id%>&version=<%=(version-1)%>"><</a></li>
+            <% } else { %>
+                <li class="disabled"><a href="#"><</a></li>
+            <% } %>
+            <% for (var i = 1; i <= max_version; i++) { %>
+                <li<%= version == i ? ' class="active"' : '' %>>
+                    <a href="<%= locals.baseUrlInfo.pathname %>create?id=<%= event_id %>&version=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+            <% if (version < max_version) { %>
+                <li><a href="<%= locals.baseUrlInfo.pathname %>create?id=<%=event_id%>&version=<%=(version+1)%>">></a></li>
+            <% } else { %>
+                <li class="disabled"><a href="#">></a></li>
+            <% } %>
+        </ul>
+    </div>
+<% } %>
+<% if (!create) { %>
+    <div class="col-sm-12">
+        <% if (version <= eventinfo[0].event_confirmed_version_manager) { %>
+            <h3 style="display:inline-block;"><span class="label label-success">Accepted by Stage Manager: Yes</span></h3>
+        <% } else { %>
+            <h3 style="display:inline-block;"><span class="label label-warning">Accepted by Stage Manager: No</span></h3>
+            <% if (user.isManager) { %>
+                <form method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-primary btn-sm" name="accept" value="manager" style="margin-top: -5px;">accept</button>
+                    <input name="version" type="hidden" value="<%=version %>" />
+                    <input name="event_id" type="hidden" value="<%=event_id %>" />
+                </form>
+            <% } %>
+        <% } %>
+    </div>
+    <div class="col-sm-12">
+        <% if (version <= eventinfo[0].event_confirmed_version_creator) { %>
+            <h3 style="display:inline-block;"><span class="label label-success" align="right">Accepted by Event Manager: Yes</span></h3>
+        <% } else { %>
+            <h3 style="display:inline-block;"><span class="label label-warning" align="right">Accepted by Event Manager: No</span></h3>
+            <% if (user.user_id == event_creator) { %>
+                <form method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-primary btn-sm" name="accept" value="creator" style="margin-top: -5px;">accept</button>
+                    <input name="version" type="hidden" value="<%=version %>" />
+                    <input name="event_id" type="hidden" value="<%=event_id %>" />
+                    <input name="event_manager" type="hidden" value="<%=event_creator %>" />
+                </form>
+            <% } %>
+        <% } %>
+    </div>
+<% } %>
+
+<div class="row">
+    <div class="col-sm-12">
+        <row>
+            <div class="col-lg-12">
+                <form class="form-horizontal"  method="post" onsubmit="return confirm('Do you really want to <%= event_id > 0 ? 'confirm the changes' : 'create that survey' %>?');" >
+                    <input name="event_id" type="hidden" value="<%=event_id %>" />
+                    <input name="version" type="hidden" value="<%=version %>" />
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <strong>Tell us about your event</strong>
+                        </div>
+                        <div class="panel-body">
+                            <p>Basic info up front</p>
+                            <% if (user.isManager && create) { %>
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1" class="col-sm-4 control-label">
+                                        Who will be the Event Manager?
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="event_manager">
+                                            <option value="<%=event_creator %>">Me</option>
+                                            <% for (manager of managerlist) { %>
+                                                <option value="<%=manager.user_id %>">
+                                                    <%=manager.user_name %>
+                                                </option>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+                            <% } else { %>
+                                <input name="event_manager" type="hidden" value="<%=event_creator %>" />
+                            <% } %>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-4 control-label">
+                                    Your events name?
+                                </label>
+                                <div class="col-sm-8">
+                                    <input class="form-control" name="event_name" value="<%=event_name %>" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-4 control-label">
+                                    It will take place on the:
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control" name="stage_id">
+                                        <option value="">Please choose...</option>
+                                        <% for (stage of stages) { %>
+                                            <option value="<%=stage.stage_id %>" <%= (stage_id == stage.stage_id ? 'selected' : '') %> >
+                                                <%=stage.stage_name %>
+                                            </option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-4 control-label">
+                                    Day of week / Date:
+                                </label>
+                                <div class="col-sm-8">
+                                    <select class="form-control" name="event_date">
+                                        <option value="">Please pick a day...</option>
+                                        <% if (convention.length > 0) { %>
+                                            <% var start = new Date(convention[0].date_from); %>
+                                            <% var end = new Date(convention[0].date_to); %>
+                                            <% for (seldate = start; seldate <= end; seldate.setDate(seldate.getDate() + 1)) { %>
+                                                <% var isodate = (seldate.getYear()+1900) + '-' + (seldate.getMonth()+1) + '-' + seldate.getDate(); %>
+                                                <option value="<%= isodate %>" <%= (date == isodate ? 'selected=selected' : '') %> >
+                                                    <%=weekday[seldate.getDay()] %>, <%=seldate.getYear()+1900 %>-<%=seldate.getMonth()+1 %>-<%=seldate.getDate() %>
+                                                </option>
+                                            <% } %>
+                                        <% } %>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-7 control-label">
+                                    Time you will need for setup before the actual event:
+                                </label>
+                                <div class="col-sm-3">
+                                    <input class="form-control" name="time_pre" type="number" min=0 max=120 value="<%=time_pre %>" />
+                                </div>
+                                <div class="col-sm-2">
+                                    <label class="control-label">Minutes</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-7 control-label">
+                                    The overall duration of your event:
+                                </label>
+                                <div class="col-sm-3">
+                                    <input class="form-control" name="time_dur" type="number" min=0 max=120 value="<%=time_dur %>" />
+                                </div>
+                                <div class="col-sm-2">
+                                    <label class="control-label">Minutes</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-7 control-label">Time you'll need for breakdown right after the event:</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control" name="time_post" type="number" min=0 max=120 value="<%=time_post %>">
+                                </div>
+                                <div class="col-sm-2">
+                                    <label class="control-label">Minutes</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-4 control-label">What fits your event most?</label>
+                                <div class="col-sm-8">
+                                    <div class="checkbox">
+                                        <label class="radio-inline">
+                                            <input type="radio" name="event_type" value="Talk" <%= (event_type == 'Talk' ? 'checked' : '') %> />
+                                            Talk
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="event_type" value="Concert" <%= (event_type == 'Concert' ? 'checked' : '') %>>
+                                            Concert
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="event_type" value="Theater" <%= (event_type == 'Theater' ? 'checked' : '') %>>
+                                            Theater
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="event_type" value="Gameshow"<%= (event_type == 'Gameshow' ? 'checked' : '') %>>
+                                            Gameshow
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="event_type" value="Dance"<%= (event_type == 'Dance' ? 'checked' : '') %>>
+                                            Dance
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="event_type" value="Other" <%= (event_type == 'Other' || event_type == '' ? 'checked' : '') %>>
+                                            Other
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-4 control-label">
+                                    Please copy+paste your event­ description from the program
+                                </label>
+                                <div class="col-sm-8">
+                                    <textarea class="form-control" id="event_desc" name="event_desc"><%=event_desc %></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1" class="col-sm-4 control-label">
+                                    Okay, what is really going to happen?
+                                </label>
+                                <div class="col-sm-8">
+                                    <textarea class="form-control" id="event_expl" name="event_expl"><%=event_expl %></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% for (panel of elements) { %>
+                        <% if (panel.element_type == 1) { %>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <strong><%= panel.element_label %></strong>
+                                </div>
+                                <div class="panel-body">
+                                    <p><%= panel.element_value %></p>
+                                    <% for (element of elements) { %>
+                                        <% if (element.parent_id == panel.element_id) { %>
+                                            <% var customvalues = typeof customs['#' + element.element_id] == 'undefined' ? [ '' ] : customs['#' + element.element_id]; %>
+                                            <% console.log(customvalues); %>
+                                            <% switch (element.element_type) {
+                                                case 2: %>
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-4 control-label">
+                                                            <%= element.element_label %>
+                                                        </label>
+                                                        <div class="col-sm-8">
+                                                            <input class="form-control" name="custom<%= element.element_id %>" value="<%=customvalues[0] %>" />
+                                                        </div>
+                                                    </div>
+                                                    <% break; %>
+                                                <% case 3: %>
+                                                    <div class="row">
+                                                        <% if (element.element_label != null) { %>
+                                                            <label class="col-xs-6">
+                                                                <%= element.element_label %>
+                                                            </label>
+                                                            <div class="col-xs-6 nopadding">
+                                                        <% } else { %>
+                                                            <div class="col-xs-12 nopadding">
+                                                        <% }
+                                                            if (element.element_tags != null && element.element_tags.search('multiline') > -1) { %>
+                                                                <textarea class="form-control" name="custom<%= element.element_id %>"><%=customvalues[0] %></textarea>
+                                                            <% } else { %>
+                                                                <input class="form-control noroundcorner" name="custom<%= element.element_id %>" value="<%=customvalues[0] %>" />
+                                                            <% } %>
+                                                        </div>
+                                                    </div>
+                                                    <% break; %>
+                                                <% case 4: %>
+                                                    <% var options = element.element_value.split(';'); %>
+                                                    <div class="row">
+                                                        <% if (element.element_label != null) { %>
+                                                            <label class="col-xs-6"><%= element.element_label %></label>
+                                                            <div class="col-xs-6 nopadding">
+                                                        <% } else { %>
+                                                            <div class="col-xs-12 nopadding">
+                                                        <% } %>
+                                                            <select class="form-control" name="custom<%= element.element_id %>">
+                                                                <option value="">Please choose</option>
+                                                                <% for (var j = 0; j < options.length; j++) { %>
+                                                                    <option value="<%= j+1 %>" <%=customvalues[0] == j+1 ? 'selected' : '' %> >
+                                                                        <%= options[j] %>
+                                                                    </option>
+                                                                <% } %>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <% break; %>
+                                                <% case 5: %>
+                                                    <% break; %>
+                                                <% case 6: %>
+                                                <% case 7: %>
+                                                    <%
+                                                        var options = element.element_value.split(';');
+                                                        var labelwidth = 12;
+                                                        var valuewidth = 2;
+                                                        if (options.length == 2) {
+                                                            labelwidth = 6;
+                                                            valuewidth = 3;
+                                                        } else if (options.length == 3) {
+                                                            labelwidth = 6;
+                                                            valuewidth = 2;
+                                                        } else if (options.length == 4) {
+                                                            valuewidth = 3;
+                                                        }
+                                                    %>
+                                                    <div class="row">
+                                                        <label class="col-xs-<%= labelwidth %> nopadding">
+                                                            <%= element.element_label %>
+                                                        </label>
+                                                        <% for (var i = 0; i < options.length; i++) { %>
+                                                            <% var checked = ''; %>
+                                                            <% for (var j = 0; j < customvalues.length; j++) { if (i+1 == customvalues[j]) { checked = 'checked'; } } %>
+                                                            <div class="col-xs-<%= valuewidth %> nopadding">
+                                                                <label class="<%= element.element_type == 6 ? 'checkbox' : 'radio' %>-inline">
+                                                                    <input name="custom<%= element.element_id %>" type="<%= element.element_type == 6 ? 'checkbox' : 'radio' %>" value="<%= i+1 %>" <%=checked %> />
+                                                                    <%= options[i] %>
+                                                                </label>
+                                                            </div>
+                                                        <% } %>
+                                                    </div>
+                                                    <% break; %>
+                                                <% case 8: %>
+                                                    <% if (element.element_label != null) { %>
+                                                        <%
+                                                            var headlines = element.element_label.split(';');
+                                                            var width = 12 / headlines.length;
+                                                        %>
+                                                        <% for (var i = 0; i < headlines.length; i++) { %>
+                                                            <label for="exampleInputEmail1" class="col-xs-<%= width %> control-label">
+                                                                <%= headlines[i] %>
+                                                            </label>
+                                                        <% } %>
+                                                    <% } %>
+                                                    <%
+                                                        var row = [];
+                                                        for (col of elements) {
+                                                            if (col.parent_id == element.element_id) {
+                                                                row.push(col);
+                                                            }
+                                                        }
+
+                                                        var customcellvalues = []
+                                                        for (var i = 0; i < row.length; i++) {
+                                                            customcellvalues[i] = typeof customs['#' + row[i].element_id] == 'undefined' ? [ '' ] : customs['#' + row[i].element_id];
+                                                        }
+
+                                                        width = 12 / row.length;
+                                                        var rowcount = 1;
+                                                        if (typeof customs['#' + row[0].element_id] != 'undefined') {
+                                                            rowcount = customs['#' + row[0].element_id].length;
+                                                        }
+                                                        if (typeof customs['#' + row[1].element_id] != 'undefined' && rowcount == 1) {
+                                                            rowcount = customs['#' + row[1].element_id].length;
+                                                        }
+                                                    %>
+                                                    <% for (var j = 0; j < rowcount; j++) { %>
+                                                        <div class="row">
+                                                            <% for (var i = 0; i < row.length; i++) { %>
+                                                                <% switch (row[i].element_type) {
+                                                                    case 2: %>
+                                                                        <label class="col-sm-<%= width %> control-label">
+                                                                            <%= row[i].element_label %>
+                                                                        </label>
+                                                                        <% break; %>
+                                                                    <% case 3: %>
+                                                                        <% if (row[i].element_label != null) { %>
+                                                                            <label class="col-sm-<%= width %> control-label">
+                                                                                <%= row[i].element_label %>
+                                                                            </label>
+                                                                        <% } %>
+                                                                        <% if (row[i].element_tags != null && row[i].element_tags.search('multiline') > -1) { %>
+                                                                            <div class="col-sm-<%= width %>">
+                                                                                <textarea class="form-control" name="custom<%= row[i].element_id %>"><%=typeof customs['#' + row[i].element_id] == 'undefined' ? '' : customs['#' + row[i].element_id][j] %></textarea>
+                                                                            </div>
+                                                                        <% } else { %>
+                                                                            <div class="col-xs-<%= width %> nopadding">
+                                                                                <input class="form-control noroundcorner" name="custom<%= row[i].element_id %>" value="<%=typeof customs['#' + row[i].element_id] == 'undefined' ? '' : customs['#' + row[i].element_id][j] %>" />
+                                                                            </div>
+                                                                        <% } %>
+                                                                        <% break; %>
+                                                                    <% case 4: %>
+                                                                        <% var options = row[i].element_value.split(';'); %>
+                                                                        <div class="col-xs-<%= width %> nopadding">
+                                                                            <select class="form-control" name="custom<%= row[i].element_id %>">
+                                                                                <option value="">Please choose</option>
+                                                                                <% for (var k = 0; k < options.length; k++) { %>
+                                                                                    <option value="<%= k+1 %>" <%=typeof customs['#' + row[i].element_id] != 'undefined' && customs['#' + row[i].element_id][j] == k+1 ? 'selected' : '' %> >
+                                                                                        <%= options[k] %>
+                                                                                    </option>
+                                                                                <% } %>
+                                                                            </select>
+                                                                        </div>
+                                                                        <% break; %>
+                                                                    <% case 9: %>
+                                                                        <label class="col-sm-<%= width %> control-label increase">
+                                                                            <%=j+1 %>
+                                                                        </label>
+                                                                        <% break; %>
+                                                                <% } %>
+                                                            <% } %>
+                                                            <% if (j > 0) { %>
+                                                                <input type="button" value="x" class="btn btn-danger js-remove-row" />
+                                                            <% } %>
+                                                        </div>
+                                                    <% } %>
+                                                    <% if (!(element.element_tags != null && element.element_tags.search('no-expand') > -1)) { %>
+                                                        <input type="button" class="btn btn-primary js-add-row" value="Add Row" />
+                                                    <% } %>
+                                                    <% break; %>
+                                                <% case 10: %>
+                                                    <p><%= element.element_value %></p>
+                                                    <% break; %>
+                                            <% } %>
+                                        <% } %>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } %>
+                    <% if (version == max_version) { %>
+                        <button type="submit" name="action" class="btn btn-primary">
+                            <%= create ? 'create Event' : 'update Event' %>
+                        </button>
+                    <% } %>
+                </form>
+            </div>
+        </row>
+    </div>
+</div>
+
+<% include ./partials/page-end %>

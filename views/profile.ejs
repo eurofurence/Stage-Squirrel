@@ -1,112 +1,154 @@
-<!-- views/profile.ejs -->
-<!doctype html>
-<html>
-<head>
-    <title>Node Authentication</title>
-    <% include ./partials/head %>
-</head>
-<body>
+<% var title = 'Stage Squirrel - Profile Settings'; %>
+<% include ./partials/page-begin %>
 
-    <% include ./partials/nav %>	
-
-<div class="container">
-
-    <div class="page-header text-center">
-	    <h1>Profile Settings</h1>
-    </div>
-	
-    <div class="row">
-	    <div class="col-lg-12">
-		    <form class="form-horizontal" method="post"%>
-			    <div class="panel panel-default general">
-				     <div class="panel-heading"><strong>Personal Information</strong></div>
-			    		<div class="panel-body">
-             			  	<div class="form-group">
-               				<div class="col-sm-3">
-                 				   <b>Username:</b>
-               			     </div>
-               				<div class="col-sm-9">
-                 				   <%= user.user_name %>
-               			     </div>
-						</div>
-             			  	<div class="form-group">
-               				<div class="col-sm-3">
-                 				   <b>Email Address:</b>
-               			     </div>
-               				<div class="col-sm-9">
-                 				   <%= user.user_mail %>
-               			     </div>
-						</div>
-             			  	<div class="form-group">
-               				<div class="col-sm-3">
-                 				   <b>Mobile Phone:</b>
-               			     </div>
-               				<div class="col-sm-9">
-                 				   <%= user.user_mobile %>
-               			     </div>
-						</div>
-             			  	<div class="form-group">
-               				<div class="col-sm-3">
-                 				   <b>Roles:</b>
-               			     </div>
-               				<div class="col-sm-9">
-                 				   <% for (var role of user.user_roles) { %><%= role.role_title %> <% }%>
-               			     </div>
-						</div>
-						<a href="/logout" class="btn btn-default btn-sm">Logout</a>
-					</div>
-				</div>
-				<% if (telegram == 'true') { %>
-			    <div class="panel panel-default general">
-				     <div class="panel-heading"><strong>Telegram Integration</strong></div>
-			    		<div class="panel-body">
-             			  	<p>You can get important notification with our Telegram-Bot, just search for "<%- telegrambotname %>" on Telegram or click <a href="https://web.telegram.org/#/im?p=<%- telegrambotname %>">here</a> for Telegram Web.</p>
-					     <% if (typeof error != 'undefined' && error.length > 0) { %>
-					         <div class="alert alert-danger"><%= error %></div>
-					     <% } %>
-							<% if (user.user_telegram_linked == '0' || user.user_telegram_id == null) { %>
-						<p>To link your Telegram Account with StageSquirrel just send <b>/link <%= user.user_name %></b> to the chat. The bot then will send a confirmation code to you which is valid for 10 minutes. Please enter that code to link Telegram with StageSquirrel.</p>
-             			  	<div class="form-group">
-							<div class="col-sm-4">
-            				   	  <b>Confirmation key: </b>
-          			     	</div>
-          					<div class="col-sm-3">
-            				   	  <input type="text" class="form-control" placeholder="Key" name="telegram_code">
-          			     	</div>
-          					<div class="col-sm-3">
-            				   	  <button type="submit" class="btn btn-primary" name="action" value="telegram-confirmation">confirm</button>
-          			     	</div>
-               			 </div>
-							<% } else { %>
-							<p>Your bot is sucessfully linked to your Telegram Account. To unlink you can type <b>/unlink</b> or use that button</p>
-						<div class="form-group">
-               				<div class="col-sm-3">
-                 				   <button type="submit" class="btn btn-danger" name="action" value="telegram-unlink">unlink Telegram Bot</button>
-               			     </div>
-     			     	</div>
-							<% } %>
-						<% if (user.user_telegram_active == '1' && user.user_telegram_linked == '1' && user.user_telegram_id != null) { %>
-						<p>The notifications of the Telegram Bot are active, you can disable or specify them below.</p>
-             			  	<div class="form-group">
-							<div class="col-sm-3">
-								<button type="submit" class="btn btn-danger" name="action" value="telegram-deactivate">deactivate Telegram Bot</button>
-							</div>
-						</div>
-							<% } else if (user.user_telegram_active == '0' && user.user_telegram_linked == '1' && user.user_telegram_id != null) { %>
-						<p>The notifications of the Telegram Bot are inactive, you can enable and specify them below.</p>
-             			  	<div class="form-group">
-							<div class="col-sm-3">
-								<button type="submit" class="btn btn-primary" name="action" value="telegram-activate">activate Telegram Bot</button>
-							</div>
-						</div>
-						<% } %>
-					</div>
-				</div>
-				<% } %>
-			</form>
-		</div>
-	</div>
-	
+<div class="page-header text-center">
+    <h1>Profile Settings</h1>
 </div>
-</body>
-</html>
+<div class="row">
+    <div class="col-lg-12">
+        <form class="form-horizontal" method="post"%>
+            <div class="panel panel-default general">
+                <div class="panel-heading">
+                    <strong>Personal Information</strong>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <b>Username:</b>
+                        </div>
+                        <div class="col-sm-9">
+                            <%= user.user_name %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <b>Email Address:</b>
+                        </div>
+                        <div class="col-sm-9">
+                            <%= user.user_mail %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <b>Mobile Phone:</b>
+                        </div>
+                        <div class="col-sm-9">
+                            <%= user.user_mobile %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-3">
+                            <b>Roles:</b>
+                        </div>
+                        <div class="col-sm-9">
+                            <% for (var role of user.user_roles) { %>
+                                <%= role.role_title %>
+                            <% }%>
+                        </div>
+                    </div>
+                    <a href="<%= locals.baseUrlInfo.pathname %>logout" class="btn btn-default btn-sm">Logout</a>
+                </div>
+            </div>
+            <% if (telegram == 'true') { %>
+                <div class="panel panel-default general">
+                    <div class="panel-heading">
+                        <strong>Telegram Integration</strong>
+                    </div>
+                    <div class="panel-body">
+                        <p>
+                            You can get important notification with our Telegram-Bot,
+                            just search for "<%- telegrambotname %>" on Telegram or click
+                            <a href="https://web.telegram.org/#/im?p=<%- telegrambotname %>">here</a>
+                            for Telegram Web.
+                        </p>
+                        <% if (typeof error != 'undefined' && error.length > 0) { %>
+                            <div class="alert alert-danger">
+                                <%= error %>
+                            </div>
+                        <% } %>
+                        <% if (user.user_telegram_linked == '0' || user.user_telegram_id == null) { %>
+                            <p>
+                                To link your Telegram Account with StageSquirrel just send
+                                <b>/link <%= user.user_name %></b> to the chat. The bot then
+                                will send a confirmation code to you which is valid for 10
+                                minutes. Please enter that code to link Telegram with
+                                StageSquirrel.
+                            </p>
+                            <div class="form-group">
+                                <div class="col-sm-4">
+                                        <b>Confirmation key: </b>
+                                </div>
+                                <div class="col-sm-3">
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Key"
+                                        name="telegram_code"
+                                        />
+                                </div>
+                                <div class="col-sm-3">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                        name="action"
+                                        value="telegram-confirmation"
+                                        >
+                                        confirm
+                                    </button>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <p>
+                                Your bot is sucessfully linked to your Telegram Account.
+                                To unlink you can type <b>/unlink</b> or use that button
+                            </p>
+                            <div class="form-group">
+                                <div class="col-sm-3">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                        name="action"
+                                        value="telegram-unlink"
+                                        >
+                                        unlink Telegram Bot
+                                    </button>
+                                </div>
+                            </div>
+                        <% } %>
+                        <% if (user.user_telegram_active == '1' && user.user_telegram_linked == '1' && user.user_telegram_id != null) { %>
+                            <p>The notifications of the Telegram Bot are active, you can disable or specify them below.</p>
+                            <div class="form-group">
+                                <div class="col-sm-3">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                        name="action"
+                                        value="telegram-deactivate"
+                                        >
+                                        deactivate Telegram Bot
+                                    </button>
+                                </div>
+                            </div>
+                        <% } else if (user.user_telegram_active == '0' && user.user_telegram_linked == '1' && user.user_telegram_id != null) { %>
+                            <p>The notifications of the Telegram Bot are inactive, you can enable and specify them below.</p>
+                            <div class="form-group">
+                                <div class="col-sm-3">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                        name="action"
+                                        value="telegram-activate"
+                                        >
+                                        activate Telegram Bot
+                                    </button>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+        </form>
+    </div>
+</div>
+
+<% include ./partials/page-end %>

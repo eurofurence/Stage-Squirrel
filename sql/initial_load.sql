@@ -314,7 +314,14 @@ INSERT INTO `sq_configuration` (`configuration_id`,`configuration_title`,`config
 
 INSERT INTO `sq_conventions` (`convention_id`,`template_id`,`convention_name`,`convention_description`,`date_from`,`date_to`) VALUES (1,1,'Eurofurence 23','Convention for Eurofurence 2017 with theme Ancient Egypt','2017-08-16','2017-08-20');
 
-
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (1,'Administrator','can change global settings and edit users',1,1,0,1,1,NULL,0);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (2,'Stage Manager','can confirm event requests',0,1,0,1,1,NULL,0);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (3,'Event Manager','can create events',0,0,0,1,1,NULL,0);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (4,'Member','can only view the application',0,0,1,1,0,NULL,0);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (10,'Audio','is member of the audio team',0,0,0,1,0,'music',1);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (11,'Video','is member of the video team',0,0,0,1,0,'facetime-video',0);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (12,'Light','is member of the light team',0,0,0,1,0,'lamp',0);
+INSERT INTO `sq_role` (`role_id`,`role_title`,`role_description`,`role_is_admin`,`role_is_manager`,`role_is_default`,`role_is_active`,`role_is_creator`,`role_glyphicon`,`role_controls_stagebox`) VALUES (13,'Backstage','is member of the backstage team',0,0,0,1,0,'wrench',0);
 
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (1,1,NULL,NULL,1,'Important contacts on your end','Anyone we need to know about?',NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (2,1,1,NULL,8,'Function;Nick;Mobile(int. notation);E-Mail',NULL,NULL);

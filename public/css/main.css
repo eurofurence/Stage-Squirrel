@@ -1,0 +1,28 @@
+.modal-header {
+    background-color: #016257;
+    color: #FFFFFF;
+}
+
+.close {
+    opacity: 1;
+    color: #FFFFFF;
+}
+
+.chosen-container {
+    width: 100% !important;
+}
+
+@media (max-width: 767px) {
+    #sq-logo {
+        display: none;
+    }
+}
+
+img.sq-navbar-brand {
+    height: 45px;
+    transform: scale(-1, 1);
+    display: inline;
+    margin-top: -13px;
+    vertical-align: top;
+    filter: brightness(0.6);
+}

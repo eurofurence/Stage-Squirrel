@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <% if (title && title.length) { %>
+            <title><%= title %></title>
+        <% } %>
+        <% include ./head %>
+    </head>
+    <body>
+        <% if (typeof user !== 'undefined') { %>
+            <% include ./nav %>
+        <% } %>
+        <div class="container">
