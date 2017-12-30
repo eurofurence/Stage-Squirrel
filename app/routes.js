@@ -24,7 +24,6 @@ module.exports = function(router, passport) {
     require('./routes/admin')(router, passport, connection, notifier);
     require('./routes/convention')(router, passport, connection);
     require('./routes/create')(router, passport, connection, notifier);
-    require('./routes/editcreate')(router, passport, connection);
     require('./routes/home')(router, passport, connection);
     require('./routes/login')(router, passport);
     require('./routes/logout')(router, passport);
