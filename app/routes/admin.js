@@ -1,67 +1,41 @@
 var adminGuard = require('../middleware/guard/admin');
 var isLoggedIn = require('../middleware/isLoggedIn');
+var ViewModel = require('../ViewModels/Admin');
 
 // =====================================
 // ADMIN ===============================
 // =====================================
 module.exports = function(app, passport, connection, notifier) {
+    var viewModel = new ViewModel(connection);
+
     // show the admin config
     app.get('/admin', isLoggedIn, adminGuard, function(req, res) {
-        connection.query('SELECT * from sq_configuration', function(err, cfgrows) {
-            connection.query('SELECT * from sq_user order by user_active;', function(err, userrows) {
-                res.render('admin.ejs', {
-                    nav: 'admin',
-                    user: req.user,
-                    allusers: userrows,
-                    configurations: cfgrows
-                });
-            });
+        viewModel.getSettingsAndUsers(function(data) {
+            var context = data;
+            context.nav = 'admin';
+            context.user = req.user;
+            res.render('admin.ejs', context);
         });
     });
 
-    // process the signup form
-    app.post('/admin', isLoggedIn, adminGuard, function(req, res) {
-        if (req.body.actionType == "global") {
-            connection.query('SELECT configuration_key, configuration_value from sq_configuration', function(err, cfgrows) {
-                for (var i = 0; i < cfgrows.length; i++) {
-                    connection.query(
-                        "UPDATE sq_configuration SET configuration_value = '" +
-                        req.body[cfgrows[i].configuration_key] +
-                        "' WHERE `configuration_key` = '" +
-                        cfgrows[i].configuration_key + "'"
-                    );
-                    //if (cfgrows[i].configuration_key == "TELEGRAM_API_TOKEN" && cfgrows[i].configuration_value != req.body[cfgrows[i].configuration_key]) {
-                    //	telegram.readToken(cfgrows[i].configuration_value);
-                    //}
+    // process the settings form
+    app.post('/admin/settings', isLoggedIn, adminGuard, function(req, res) {
+        viewModel.updateSettings(req.body.settings, function() {
+            res.redirect('/admin');
+        });
+    });
+
+    // process the user-activation form
+    app.post('/admin/user-activation', isLoggedIn, adminGuard, function(req, res) {
+        var userId = (req.body.activation || req.body.deactivation);
+        if (userId !== undefined) {
+            var activate = (userId === req.body.activation);
+            viewModel.updateUserActivation(userId, activate, function() {
+                if (activate) {
+                    notifier.notify(14, null, null, userId, null);
                 }
+                res.redirect('/admin');
             });
-        } else if (req.body.actionType == "user") {
-            if (req.body.activation != undefined) {
-                console.log(
-                    "UPDATE sq_user SET user_active = '1' WHERE `user_id` = '" +
-                    req.body.activation +
-                    "'"
-                );
-                connection.query(
-                    "UPDATE sq_user SET user_active = '1' WHERE `user_id` = '" +
-                    req.body.activation +
-                    "'"
-                );
-                notifier.notify(14, null, null, req.body.activation, null);
-            }
-            if (req.body.deactivation != undefined) {
-                console.log(
-                    "UPDATE sq_user SET user_active = '0' WHERE `user_id` = '" +
-                    req.body.deactivation +
-                    "'"
-                );
-                connection.query(
-                    "UPDATE sq_user SET user_active = '0' WHERE `user_id` = '" +
-                    req.body.deactivation +
-                    "'"
-                );
-            }
         }
-        res.redirect('/admin');
     });
 };

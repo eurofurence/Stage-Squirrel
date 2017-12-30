@@ -5,19 +5,18 @@
     <h1><span class="glyphicon glyphicon-cog"></span> Admin Configuration</h1>
 </div>
 <div class="row">
-    <!-- LOCAL INFORMATION -->
     <div class="col-sm-6">
         <div class="well">
             <h3><span class="glyphicon glyphicon-globe"></span> Global</h3>
             <p>
-                <form action="<%= locals.baseUrlInfo.pathname %>admin" method="post">
-                    <% for (cfg of configurations) { %>
+                <form action="<%= locals.baseUrlInfo.pathname %>admin/settings" method="post">
+                    <% for (setting of settings) { %>
                     <div class="form-group">
-                        <label><%= cfg.configuration_title %></label>
-                        <input type="text" class="form-control" name="<%= cfg.configuration_key %>" value="<%= cfg.configuration_value %>">
+                        <label><%= setting.configuration_title %></label>
+                        <input type="text" class="form-control" name="settings[<%= setting.configuration_key %>]" value="<%= setting.configuration_value %>" />
                     </div>
                     <% } %>
-                    <button type="submit" name="actionType" value="global" class="btn btn-primary btn-lg">Save</button>
+                    <button type="submit" class="btn btn-primary btn-lg">Save</button>
                 </form>
             </p>
         </div>
@@ -26,40 +25,39 @@
         <table class="table">
             <thead>
                 <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Created</th>
-                <th>Last Login</th>
-                <th>Active</th>
-                <th>Actions</th>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Created</th>
+                    <th>Last Login</th>
+                    <th>Active</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <form action="<%= locals.baseUrlInfo.pathname %>admin" method="post">
-                    <input type="hidden" name="actionType" value="user">
-                    <% for (one of allusers) { %>
+                <form action="<%= locals.baseUrlInfo.pathname %>admin/user-activation" method="post">
+                    <% for (user of users) { %>
                     <tr>
-                        <td><%= one.user_id %></td>
-                        <td><%= one.user_name %></td>
-                        <td><%= one.user_mail %></td>
-                        <td><%= one.user_role %></td>
-                        <td><%= new Date(one.user_created).toLocaleString() %></td>
-                        <td><%= new Date(one.user_last_login).toLocaleString() %></td>
+                        <td><%= user.user_id %></td>
+                        <td><%= user.user_name %></td>
+                        <td><%= user.user_mail %></td>
+                        <td><%= user.user_role %></td>
+                        <td><%= new Date(user.user_created).toLocaleString() %></td>
+                        <td><%= new Date(user.user_last_login).toLocaleString() %></td>
                         <td>
-                            <span class="label label-<%= one.user_active ? 'success' : 'warning' %>">
-                                <%= one.user_active ? '' : 'in' %>active
+                            <span class="label label-<%= user.user_active ? 'success' : 'warning' %>">
+                                <%= user.user_active ? '' : 'in' %>active
                             </span>
                         </td>
                         <td>
                             <button
                                 type="submit"
                                 class="btn btn-primary btn-xs"
-                                name="<%= one.user_active ? 'de' : '' %>activation"
-                                value="<%= one.user_id %>"
+                                name="<%= user.user_active ? 'de' : '' %>activation"
+                                value="<%= user.user_id %>"
                                 >
-                                <%= one.user_active ? 'de' : '' %>activate
+                                <%= user.user_active ? 'de' : '' %>activate
                             </button>
                         </td>
                     </tr>
