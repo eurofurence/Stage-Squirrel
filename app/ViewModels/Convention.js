@@ -21,14 +21,14 @@ Convention.InsertStageMappingQuery = 'INSERT INTO sq_map_convention_to_stage (co
 Convention.UpdateConventionQuery = 'UPDATE sq_conventions SET template_id=?, convention_name=?, convention_description=?, date_from=?, date_to=? WHERE convention_id=?';
 
 // Helper
-function formatConventionDate(dateTime) {
+Convention.formatConventionDate_ = function(dateTime) {
     if (dateTime == null) {
         return '-';
     }
     return (dateTime.getFullYear() + '-' + (dateTime.getMonth() + 1) + '-' + dateTime.getDate());
-}
+};
 
-function buildConventionsData(conventionRows, conventionToStageMap) {
+Convention.buildConventionsData_ = function(conventionRows, conventionToStageMap) {
     var conventionStageIds = [];
     for (var mapping of conventionToStageMap) {
         if (conventionStageIds[mapping.convention_id] === undefined) {
@@ -39,13 +39,13 @@ function buildConventionsData(conventionRows, conventionToStageMap) {
     var conventions = [];
     for (var row of conventionRows) {
         var convention = Object.create(row);
-        convention.date_from = formatConventionDate(row.date_from);
-        convention.date_to = formatConventionDate(row.date_to);
+        convention.date_from = Convention.formatConventionDate_(row.date_from);
+        convention.date_to = Convention.formatConventionDate_(row.date_to);
         convention.stage_ids = conventionStageIds[row.convention_id] || [];
         conventions.push(convention);
     }
     return conventions;
-}
+};
 
 // Methods
 Convention.prototype.getConventionsInfo = function(onSuccess, onFailure) {
@@ -57,7 +57,7 @@ Convention.prototype.getConventionsInfo = function(onSuccess, onFailure) {
         Convention.GetStagesQuery,
         Convention.GetTemplatesQuery,
     ], function(results) {
-        var conventions = buildConventionsData(results[1], results[2]);
+        var conventions = Convention.buildConventionsData_(results[1], results[2]);
         onSuccess(results[0], conventions, results[3], results[4]);
     }, onFailure);
 };
