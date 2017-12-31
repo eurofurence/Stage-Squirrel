@@ -1,24 +1,13 @@
 <% var title = 'Stage Squirrel - Manage Conventions'; %>
 <% include ./partials/page-begin %>
 
-<%
-var mapList = [];
-for (mapstage of mapstages) {
-    if (typeof mapList[mapstage.convention_id] == 'undefined') {
-        mapList[mapstage.convention_id] = [];
-    }
-    mapList[mapstage.convention_id].push(mapstage.stage_id);
-}
-%>
-
 <div class="page-header text-center"><h1>Manage Conventions</h1><div>
 <div class="row">
     <div class="col-sm-12">
         <form class="form-horizontal"  method="post"%>
             <div class="panel panel-default">
-                <div class="panel-heading"><strong>Event Overview</strong></div>
+                <div class="panel-heading"><strong>Convention Overview</strong></div>
                 <div class="panel-body">
-                    <p>List of created events</p>
                     <div class="form-group row">
                         <div class="col-sm-2"><b>Name</b></div>
                         <div class="col-sm-5"><b>Description</b></div>
@@ -29,11 +18,7 @@ for (mapstage of mapstages) {
                     <div class="form-group row" style="<%= convention.convention_id == user.currentConvention.convention_id ? 'background-color: #DDFFDD;' : '' %>">
                         <div class="col-sm-2"><b><%= convention.convention_name %></b></div>
                         <div class="col-sm-5"><%= convention.convention_description %></div>
-                        <div class="col-sm-4">
-                            <%= convention.date_from == null ? '-' : convention.date_from.getFullYear() + '-' + (convention.date_from.getMonth()+1) + '-' + convention.date_from.getDate() %>
-                                to
-                            <%= convention.date_to == null ? '-' : convention.date_to.getFullYear() + '-' + (convention.date_to.getMonth()+1) + '-' + convention.date_to.getDate() %>
-                        </div>
+                        <div class="col-sm-4"><%= convention.date_from + ' to ' + convention.date_to %></div>
                         <div class="col-sm-1">
                             <button
                                 type="button"
@@ -45,9 +30,9 @@ for (mapstage of mapstages) {
                                 data-cname="<%= convention.convention_name %>"
                                 data-cdesc="<%= convention.convention_description %>"
                                 data-ctemp="<%= convention.template_id %>"
-                                data-cstage="<%= typeof mapList[convention.convention_id] == 'undefined' ? '' : mapList[convention.convention_id] %>"
-                                data-cfrom="<%= convention.date_from == null ? '-' : convention.date_from.getFullYear() + '-' + (convention.date_from.getMonth()+1) + '-' + convention.date_from.getDate() %>"
-                                data-cto="<%= convention.date_to == null ? '-' : convention.date_to.getFullYear() + '-' + (convention.date_to.getMonth()+1) + '-' + convention.date_to.getDate() %>"
+                                data-cstage="<%= convention.stage_ids %>"
+                                data-cfrom="<%= convention.date_from %>"
+                                data-cto="<%= convention.date_to %>"
                                 >
                                 <span class="glyphicon glyphicon-pencil"></span>
                             </button>
