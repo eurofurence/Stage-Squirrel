@@ -121,7 +121,10 @@ Convention.prototype.deleteConvention = function(conventionId, onSuccess, onFail
         }
 
         var queries = [Convention.DeleteStageMappingQuery, Convention.DeleteConventionQuery];
-        var values = [[conventionId], [conventionId];
+        var values = [
+            [conventionId],
+            [conventionId],
+        ];
 
         that.beginTransaction(function(commit, rollback) {
             that.multiQuery(queries, values, function() { commit(onSuccess); }, rollback);
