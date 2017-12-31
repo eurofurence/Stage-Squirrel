@@ -37,28 +37,37 @@
             </thead>
             <tbody>
                 <form action="<%= locals.baseUrlInfo.pathname %>admin/user-activation" method="post">
-                    <% for (user of users) { %>
+                    <% for (one of users) { %>
                     <tr>
-                        <td><%= user.user_id %></td>
-                        <td><%= user.user_name %></td>
-                        <td><%= user.user_mail %></td>
-                        <td><%= user.user_role %></td>
-                        <td><%= new Date(user.user_created).toLocaleString() %></td>
-                        <td><%= new Date(user.user_last_login).toLocaleString() %></td>
+                        <td><%= one.user_id %></td>
+                        <td><%= one.user_name %></td>
+                        <td><%= one.user_mail %></td>
+                        <td><%= one.user_role %></td>
+                        <td><%= new Date(one.user_created).toLocaleString() %></td>
+                        <td><%= new Date(one.user_last_login).toLocaleString() %></td>
                         <td>
-                            <span class="label label-<%= user.user_active ? 'success' : 'warning' %>">
-                                <%= user.user_active ? '' : 'in' %>active
+                            <span class="label label-<%= one.user_active ? 'success' : 'warning' %>">
+                                <%= one.user_active ? '' : 'in' %>active
                             </span>
                         </td>
                         <td>
+                            <% if (one.user_id === user.user_id) { %>
+                            <span
+                                class="label label-primary disabled"
+                                title="You cannot change your own activation state!"
+                                >
+                                <%= one.user_active ? '' : 'de' %>activate
+                            </span>
+                            <% } else { %>
                             <button
                                 type="submit"
                                 class="btn btn-primary btn-xs"
-                                name="<%= user.user_active ? 'de' : '' %>activation"
-                                value="<%= user.user_id %>"
+                                name="<%= one.user_active ? 'de' : '' %>activation"
+                                value="<%= one.user_id %>"
                                 >
-                                <%= user.user_active ? 'de' : '' %>activate
+                                <%= one.user_active ? 'de' : '' %>activate
                             </button>
+                            <% } %>
                         </td>
                     </tr>
                     <% } %>
