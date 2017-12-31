@@ -14,33 +14,38 @@ Admin.UpdateSettingsQuery = 'UPDATE sq_configuration SET configuration_value=? W
 Admin.UpdateUserActivation = 'UPDATE sq_user SET user_active=? WHERE user_id=?;';
 
 // Methods
-Admin.prototype.getSettingsAndUsers = function(callback) {
-    var that = this;
-    that.query(Admin.GetSettingsQuery, function(settings) {
-        that.query(Admin.GetUsersQuery, function(users) {
-            callback({ settings: settings, users: users });
-        });
-    });
+Admin.prototype.getSettingsAndUsers = function(onSuccess, onFailure) {
+    this.multiQuery([Admin.GetSettingsQuery, Admin.GetUsersQuery], function(results) {
+        onSuccess(results[0], results[1]);
+    }, onFailure);
 };
 
-Admin.prototype.updateSettings = function(settingsByKey, callback) {
+Admin.prototype.updateSettings = function(settingsByKey, onSuccess, onFailure) {
     var that = this;
     that.query(Admin.GetSettingsQuery, function(oldSettings) {
-        oldSettings.forEach(function(oldSetting) {
+        var queries = [];
+        var values = [];
+
+        for (var oldSetting of oldSettings) {
             var key = oldSetting.configuration_key;
             var newValue = settingsByKey[key];
             if (newValue !== oldSetting.configuration_value) {
-                that.query(Admin.UpdateSettingsQuery, [newValue, key], callback);
-                //if (oldSetting.configuration_key == 'TELEGRAM_API_TOKEN') {
+                queries.push(Admin.UpdateSettingsQuery);
+                values.push([newValue, key]);
+                //if (key == 'TELEGRAM_API_TOKEN') {
                 //  telegram.readToken(oldSetting.configuration_value);
                 //}
             }
-        });
+        }
+
+        that.beginTransaction(function(commit, rollback) {
+            that.multiQuery(queries, values, function() { commit(onSuccess); }, rollback);
+        }, onFailure);
     });
 };
 
-Admin.prototype.updateUserActivation = function(id, activate, callback) {
-    this.query(Admin.UpdateUserActivation, [activate, id], callback);
+Admin.prototype.updateUserActivation = function(id, activate, onSuccess, onFailure) {
+    this.query(Admin.UpdateUserActivation, [activate, id], onSuccess, onFailure);
 };
 
 module.exports = Admin;
