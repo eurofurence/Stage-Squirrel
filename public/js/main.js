@@ -17,7 +17,8 @@ $(document).ready(function() {
             $('.modal-body #cname').val($(this).data('cname'));
             $('.modal-body #cdesc').val($(this).data('cdesc'));
             $('.modal-body #ctemp').val($(this).data('ctemp'));
-            var stageArray = $(this).data('cstage').split(',');
+            var stages = $(this).data('cstage') + '';
+            var stageArray = (stages.indexOf(',') > -1 ? stages.split(',') : [stages.trim()]);
             for (var stage of $('.modal-body input[name=convention_stage]')) {
                 stage.checked = false;
                 for (var chosenStage of stageArray) {
