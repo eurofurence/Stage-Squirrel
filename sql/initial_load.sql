@@ -300,6 +300,7 @@ CREATE TABLE `sq_user` (
   `user_active` int(11) DEFAULT '1',
   `user_mobile` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
+  UNIQUE KEY `user_name_UNIQUE` (`user_name`),
   UNIQUE KEY `user_mail_UNIQUE` (`user_mail`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
