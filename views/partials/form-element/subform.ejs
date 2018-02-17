@@ -1,0 +1,21 @@
+<% for (var headline of headlines) { %>
+    <label for="" class="col-xs-<%= width %> control-label">
+        <%= headline %>
+    </label>
+<% } %>
+
+<% for (var j = 0; j < rowCount; j++) { %>
+    <div class="row">
+        <% for (var element of elements) { %>
+            <%- //include(element.viewPath, element.forValueIndex(j)); -%>
+        <% } %>
+
+        <% if (j > 0) { %>
+            <input type="button" value="x" class="btn btn-danger js-remove-row" />
+        <% } %>
+    </div>
+<% } %>
+
+<% if (isExpandable) { %>
+    <input type="button" class="btn btn-primary js-add-row" value="Add Row" />
+<% } %>

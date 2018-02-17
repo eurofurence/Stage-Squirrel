@@ -1,0 +1,16 @@
+<div class="row">
+    <label class="col-xs-<%= labelWidth %> nopadding">
+        <%= label %>
+    </label>
+    <% for (var option of options) { %>
+    <div class="col-xs-<%= valueWidth %> nopadding">
+        <label class="checkbox-inline">
+            <input
+                name="custom<%= id %>"
+                type="checkbox"
+                value="<%= option.id %>" <%= option.isSelected ? 'checked="checked"' : '' %> />
+            <%= option.value %>
+        </label>
+    </div>
+    <% } %>
+</div>

@@ -1,0 +1,15 @@
+<% if (label.length > 0) { %>
+<label class="col-sm-<%= width %> control-label">
+    <%= label %>
+</label>
+<% } %>
+
+<% if (isMultiLine) { %>
+<div class="col-sm-<%= width %>">
+    <textarea class="form-control" name="custom<%= id %>"><%= value %></textarea>
+</div>
+<% } else { %>
+<div class="col-xs-<%= width %> nopadding">
+    <input class="form-control noroundcorner" name="custom<%= id %>" value="<%= value %>" />
+</div>
+<% } %>

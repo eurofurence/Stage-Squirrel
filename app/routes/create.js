@@ -1,70 +1,45 @@
-var creatorGuard = require('../middleware/guard/creator');
 var creatorOrManagerGuard = require('../middleware/guard/creatorOrManager');
 var isLoggedIn = require('../middleware/isLoggedIn');
+var ViewModel = require('../ViewModels/Create');
 
 // =====================================
 // CREATE ==============================
 // =====================================
 module.exports = function(app, passport, connection, notifier) {
-    app.get('/create', isLoggedIn, creatorGuard, function(req, res) {
-        connection.query('SELECT * from sq_configuration', function(err, cfgrows) {
-            connection.query('SELECT * from sq_form_elements where template_id = (SELECT template_id FROM sq_conventions WHERE convention_id = ?);', req.user.currentConvention.convention_id, function(err, elementrows) {
-                connection.query('SELECT * from sq_role where role_is_admin = 0 and role_is_manager = 0 and role_is_default = 0 and role_is_active = 1', function(err, rolesrows) {
-                    connection.query('SELECT * from sq_conventions where convention_id = ?', req.user.currentConvention.convention_id, function(err, conventionrows) {
-                        connection.query('SELECT sq_stage.stage_id, sq_stage.stage_name, sq_stage.stage_description FROM sq_map_convention_to_stage join sq_stage on sq_map_convention_to_stage.stage_id = sq_stage.stage_id WHERE convention_id = ?', req.user.currentConvention.convention_id, function(err, stagerows) {
-                            connection.query('SELECT * from sq_events where event_id = ?', req.query.id, function(err, eventrows) {
-                                console.log("-----");
-                                console.log(eventrows);
+    var viewModel = new ViewModel(connection);
 
-                                var version = 1;
-                                var events = eventrows || [];
-                                if (events.length > 0) {
-                                    version = events[0].event_max_version;
-                                    if (typeof req.query.version != 'undefined' &&
-                                        req.query.version > 0 &&
-                                        req.query.version <= events[0].event_max_version
-                                    ) {
-                                        version = req.query.version;
-                                    }
-                                }
-                                console.log("Shall load version " + version);
-                                console.log(eventrows != null);
-                                console.log(typeof req.query.version);
-                                connection.query('SELECT * from sq_event_details where event_id = ' + req.query.id + ' AND event_version = ?', version, function(err, eventdetailrows) {
-                                    connection.query('SELECT * from sq_event_customs where event_id = ? AND version = ?', [req.query.id, version], function(err, customrows) {
-                                        connection.query('SELECT creator_id from sq_event_details where event_id = ? AND event_version = 1', req.query.id, function(err, creatorresult) {
-                                            connection.query('SELECT * FROM sq_user join sq_map_user_to_role on sq_user.user_id = sq_map_user_to_role.user_id join sq_role on sq_map_user_to_role.role_id = sq_role.role_id where sq_role.role_is_creator = 1 and sq_user.user_active = 1', function(err, managerrows) {
-                                                if (typeof eventrows == 'undefined' ||
-                                                    creatorresult[0].creator_id == req.user.user_id ||
-                                                    req.user.isManager
-                                                ) {
-                                                    res.render('create.ejs', {
-                                                        nav: 'create',
-                                                        user: req.user,
-                                                        stages: stagerows || [],
-                                                        elements: elementrows || [],
-                                                        roles: rolesrows || [],
-                                                        convention: conventionrows || [],
-                                                        configurations: cfgrows || [],
-                                                        event: eventdetailrows || [],
-                                                        eventinfo: events,
-                                                        customfields: customrows || [],
-                                                        creator: creatorresult || [],
-                                                        managerlist: managerrows || [],
-                                                    });
-                                                } else {
-                                                    console.log("User has no rights to access event.");
-                                                }
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
+    app.get('/create', isLoggedIn, creatorOrManagerGuard, function(req, res) {
+        viewModel.getEventFormInfo(
+            req.user.currentConvention.convention_id,
+            req.query.id,
+            req.query.version,
+            function(elements, convention, stages, eventData, customsMap, creators) {
+                if (convention === undefined) {
+                    req.flash('warning', 'There is no convention ahead, for which you could create a survey.');
+                    res.redirect('/convention');
+                    return;
+                }
+                var isCreationMode = (eventData.creatorId === 0);
+                if (isCreationMode || eventData.creatorId === req.user.user_id || req.user.isManager) {
+                    res.render('create.ejs', {
+                        convention: convention,
+                        customs: customsMap,
+                        creatorId: eventData.creatorId || req.user.user_id,
+                        creatorsList: creators,
+                        elements: elements,
+                        event: eventData,
+                        isCreationMode: isCreationMode,
+                        nav: 'create',
+                        stages: stages,
+                        user: req.user,
                     });
-                });
-            });
-        });
+                }
+            },
+            function(error) {
+                req.flash('error', error);
+                res.redirect('/home');
+            }
+        );
     });
 
     app.post('/create', isLoggedIn, creatorOrManagerGuard, function(req, res) {

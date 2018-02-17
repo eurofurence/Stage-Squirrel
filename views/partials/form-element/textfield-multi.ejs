@@ -1,0 +1,18 @@
+<div class="row">
+    <% if (label != '') { %>
+        <label class="col-xs-6">
+            <%= label %>
+        </label>
+        <div class="col-xs-6 nopadding">
+    <% } else { %>
+        <div class="col-xs-12 nopadding">
+    <% } %>
+    <% if (isMultiLine) { %>
+        <textarea class="form-control" name="custom<%= id %>">
+            <%= value %>
+        </textarea>
+    <% } else { %>
+        <input class="form-control noroundcorner" name="custom<%= id %>" value="<%= value %>" />
+    <% } %>
+    </div>
+</div>

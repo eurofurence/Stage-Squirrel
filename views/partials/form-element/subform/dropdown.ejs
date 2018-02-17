@@ -1,0 +1,10 @@
+<div class="col-xs-<%= width %> nopadding">
+    <select class="form-control" name="custom<%= id %>">
+        <option value="">Please choose</option>
+        <% for (var option of options) { %>
+        <option value="<%= option.id %>" <%= (selected == option.id ? 'selected="selected"' : '') %> >
+            <%= option.value %>
+        </option>
+        <% } %>
+    </select>
+</div>
