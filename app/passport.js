@@ -55,11 +55,11 @@ module.exports = function(passport) {
 
     passport.use('local-signup', new LocalStrategy({
             // by default, local strategy uses username and password, we will override with email
-            usernameField: 'email',
+            usernameField: 'userName',
             passwordField: 'password',
             passReqToCallback: true // allows us to pass back the entire request to the callback
         },
-        function(req, email, password, done) {
+        function(req, userName, password, done) {
             connection.query('SELECT * from sq_configuration', function(err, rows) {
                 var cfg = [];
                 for (var i = 0; i < rows.length; i++) {
@@ -70,28 +70,28 @@ module.exports = function(passport) {
                 }
                 // find a user whose email is the same as the forms email
                 // we are checking to see if the user trying to login already exists
-                connection.query("select * from sq_user where user_mail = '" + email + "'", function(err, rows) {
+                connection.query("select * from sq_user where user_name = '" + userName + "'", function(err, rows) {
                     if (err) { return done(err); }
                     if (rows.length) {
-                        return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+                        return done(null, false, req.flash('signupMessage', 'That nickname is already taken.'));
                     } else {
                         connection.query("select * from sq_user where user_name = '" + req.body.user_name + "'", function(err, rows) {
                             if (err) { return done(err); }
                             if (rows.length) {
                                 return done(null, false, req.flash('signupMessage', 'This username already exists.'));
                             } else {
-
                                 // if there is no user with that email
                                 // create the user
                                 var newUserMysql = new Object();
-                                newUserMysql.user_mail = email;
+                                newUserMysql.user_name = userName;
                                 newUserMysql.user_password = crypt.hashSync(password, 10); // use the generateHash function in our user model
+                                newUserMysql.user_mail = req.body.email;
 
                                 var user_is_active_after_registration = 1;
 
                                 if (cfg["AUTH_CONFIRMATION"].value == 1) { user_is_active_after_registration = 0; }
 
-                                var insertQuery = "INSERT INTO sq_user ( user_mail, user_password, user_name, user_active ) values ('" + newUserMysql.user_mail + "','" + newUserMysql.user_password + "','" + req.body.user_name + "','" + user_is_active_after_registration + "')";
+                                var insertQuery = "INSERT INTO sq_user ( user_mail, user_password, user_name, user_active ) values ('" + newUserMysql.user_mail + "','" + newUserMysql.user_password + "','" + newUserMysql.user_name + "','" + user_is_active_after_registration + "')";
                                 console.log(insertQuery);
                                 connection.query(insertQuery, function(err, userrows) {
                                     newUserMysql.user_id = userrows.insertId;
@@ -125,12 +125,11 @@ module.exports = function(passport) {
     // by default, if there was no name, it would just be called 'local'
 
     passport.use('local-login', new LocalStrategy({
-            // by default, local strategy uses username and password, we will override with email
-            usernameField: 'email',
+            usernameField: 'userName',
             passwordField: 'password',
             passReqToCallback: true // allows us to pass back the entire request to the callback
         },
-        function(req, email, password, done) { // callback with email and password from our form
+        function(req, userName, password, done) { // callback with userName and password from our form
             connection.query('SELECT * from sq_configuration', function(err, rows) {
                 var cfg = [];
                 for (var i = 0; i < rows.length; i++) {
@@ -140,7 +139,7 @@ module.exports = function(passport) {
                     }
                 }
 
-                connection.query("SELECT * FROM `sq_user` WHERE `user_mail` = '" + email + "'", function(err, rows) {
+                connection.query("SELECT * FROM `sq_user` WHERE `user_name` = '" + userName + "'", function(err, rows) {
                     if (err)
                         return done(err);
                     var now = new Date();
