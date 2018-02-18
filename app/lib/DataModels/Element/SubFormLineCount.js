@@ -1,5 +1,3 @@
-var getPartialByFormElementType = require('../../getPartialByFormElementType');
-
 SubFormLineCount = function(id, parentId, renderFunc) {
     this.id = id;
     this.parentId = parentId;
