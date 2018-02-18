@@ -1,10 +1,11 @@
-MultiLineTextField = function(id, parentId, label, value, isMultiLine, viewPath) {
+MultiLineTextField = function(id, parentId, label, value, isMultiLine, renderFunc) {
     this.id = id;
     this.parentId = parentId;
     this.label = label;
     this.value = value;
     this.isMultiLine = isMultiLine;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.type = MultiLineTextField.TypeId;
 };
@@ -20,6 +21,10 @@ MultiLineTextField.createFromElement = function(element) {
         (element.tags.search('multiline') > -1),
         require('../../getPartialByFormElementType')(element.type, true)
     );
+};
+
+MultiLineTextField.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = MultiLineTextField;

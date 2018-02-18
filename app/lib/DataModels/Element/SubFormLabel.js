@@ -1,8 +1,9 @@
-SubFormLabel = function(id, parentId, label, viewPath) {
+SubFormLabel = function(id, parentId, label, renderFunc) {
     this.id = id;
     this.parentId = parentId;
     this.label = label;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.type = SubFormLabel.TypeId;
     this.width = 0;
@@ -19,8 +20,8 @@ SubFormLabel.createFromElement = function(element) {
     );
 };
 
-SubFormLabel.prototype.forValueIndex = function(index) {
-    return this;
+SubFormLabel.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = SubFormLabel;

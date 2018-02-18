@@ -1,16 +1,16 @@
 var util = require('util');
 
-SubFormText = function(id, parentId, label, values, isMultiLine, viewPath) {
+SubFormText = function(id, parentId, label, values, isMultiLine, renderFunc) {
     this.id = id;
     this.isMultiLine = isMultiLine;
     this.label = label;
     this.parentId = parentId;
-    this.viewPath = viewPath;
 
+    this.__render = renderFunc;
     this.__values = values;
 
     this.type = SubFormLabel.TypeId;
-    this.value = value[0] || '';
+    this.value = values[0] || '';
     this.width = 0;
 };
 
@@ -27,12 +27,12 @@ SubFormText.createFromElement = function(element) {
     );
 };
 
-SubFormText.prototype.forValueIndex = function(index) {
+SubFormText.prototype.render = function(index) {
     this.value = '';
     if (this.__values.length > 0) {
         this.value = (this.__values[index] || '');
     }
-    return this;
+    return this.__render(this);
 };
 
 module.exports = SubFormText;

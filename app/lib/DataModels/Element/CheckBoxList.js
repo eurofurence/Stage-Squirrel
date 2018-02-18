@@ -1,10 +1,11 @@
 var util = require('util');
 
-CheckBoxList = function(id, parentId, label, bareOptions, selectedOptions, viewPath) {
+CheckBoxList = function(id, parentId, label, bareOptions, selectedOptions, renderFunc) {
     this.id = id;
     this.label = label;
     this.parentId = parentId;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     var boxSelectionStates = {};
     var values = (util.isArray(selectedOptions) ? selectedOptions : []);
@@ -60,6 +61,10 @@ CheckBoxList.prototype.addOption = function(option, isSelected) {
         isSelected: (isSelected === true),
         value: option,
     });
+};
+
+CheckBoxList.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = CheckBoxList;

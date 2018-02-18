@@ -1,8 +1,9 @@
-LabelText = function(id, parentId, label, viewPath) {
+LabelText = function(id, parentId, label, renderFunc) {
     this.id = id;
     this.parentId = parentId;
     this.label = label;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.type = LabelText.TypeId;
 };
@@ -16,6 +17,10 @@ LabelText.createFromElement = function(element) {
         element.default,
         require('../../getPartialByFormElementType')(element.type, true)
     );
+};
+
+LabelText.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = LabelText;

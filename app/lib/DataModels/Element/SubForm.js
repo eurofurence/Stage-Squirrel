@@ -1,9 +1,10 @@
-SubForm = function(id, parentId, headlines, isExpandable, viewPath) {
+SubForm = function(id, parentId, headlines, isExpandable, renderFunc) {
     this.headlines = headlines;
     this.id = id;
     this.isExpandable = isExpandable;
     this.parentId = parentId;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.elements = [];
     this.rowCount = 1;
@@ -56,6 +57,11 @@ SubForm.prototype.__recalculateWidth = function() {
     } else if (this.headlines.length > 0) {
         this.width = (12 / this.headlines.length);
     }
+};
+
+SubForm.prototype.render = function() {
+    this.syncInternals();
+    return this.__render(this);
 };
 
 module.exports = SubForm;

@@ -1,10 +1,11 @@
 var util = require('util');
 
-SubFormDropDown = function(id, parentId, selected, bareOptions, viewPath) {
+SubFormDropDown = function(id, parentId, selected, bareOptions, renderFunc) {
     this.id = id;
     this.parentId = parentId;
     this.selected = selected;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.options = [];
     var options = (util.isArray(bareOptions) ? bareOptions : []);
@@ -35,8 +36,8 @@ SubFormDropDown.prototype.addOption = function(option) {
     });
 };
 
-SubFormDropDown.prototype.forValueIndex = function(index) {
-    return this;
+SubFormDropDown.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = SubFormDropDown;

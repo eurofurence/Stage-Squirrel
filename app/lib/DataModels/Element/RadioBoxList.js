@@ -1,10 +1,11 @@
 var util = require('util');
 
-RadioBoxList = function(id, parentId, label, bareOptions, selectedOptions, viewPath) {
+RadioBoxList = function(id, parentId, label, bareOptions, selectedOptions, renderFunc) {
     this.id = id;
     this.label = label;
     this.parentId = parentId;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     var buttonSelectionStates = {};
     var values = (util.isArray(selectedOptions) ? selectedOptions : []);
@@ -60,6 +61,10 @@ RadioBoxList.prototype.addOption = function(option, isSelected) {
         isSelected: (isSelected === true),
         value: option,
     });
+};
+
+RadioBoxList.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = RadioBoxList;

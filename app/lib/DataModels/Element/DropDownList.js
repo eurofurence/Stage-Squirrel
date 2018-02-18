@@ -1,11 +1,12 @@
 var util = require('util');
 
-DropDownList = function(id, parentId, label, selected, bareOptions, viewPath) {
+DropDownList = function(id, parentId, label, selected, bareOptions, renderFunc) {
     this.id = id;
     this.label = label;
     this.parentId = parentId;
     this.selected = selected;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.options = [];
     var options = (util.isArray(bareOptions) ? bareOptions : []);
@@ -35,6 +36,10 @@ DropDownList.prototype.addOption = function(option) {
         id: (this.options.length + 1),
         value: option,
     });
+};
+
+DropDownList.prototype.render = function() {
+    return this.__render(this);
 };
 
 module.exports = DropDownList;

@@ -42,7 +42,7 @@ module.exports = function(elementRows, customDataMap) {
     for (var panelId in subForms) {
         var subForm = subForms[panelId];
         if (panels[subForm.parentId]) {
-            panels[subForm.parentId].elements.push(subForm.syncInternals());
+            panels[subForm.parentId].elements.push(subForm);
         }
     }
 

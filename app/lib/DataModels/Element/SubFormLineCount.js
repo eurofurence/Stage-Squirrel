@@ -1,9 +1,10 @@
 var getPartialByFormElementType = require('../../getPartialByFormElementType');
 
-SubFormLineCount = function(id, parentId, viewPath) {
+SubFormLineCount = function(id, parentId, renderFunc) {
     this.id = id;
     this.parentId = parentId;
-    this.viewPath = viewPath;
+
+    this.__render = renderFunc;
 
     this.lineNumber = 1;
     this.type = SubFormLineCount.TypeId;
@@ -20,9 +21,9 @@ SubFormLineCount.createFromElement = function(element) {
     );
 };
 
-SubFormLineCount.prototype.forValueIndex = function(index) {
+SubFormLineCount.prototype.render = function(index) {
     this.lineNumber = Math.max(1, index + 1);
-    return this;
+    return this.__render(this);
 };
 
 module.exports = SubFormLineCount;

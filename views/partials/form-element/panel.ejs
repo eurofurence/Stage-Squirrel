@@ -1,0 +1,12 @@
+<% /* See /app/lib/DataModels/Element/Panel.js for more information. */ %>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <strong><%= panel.label %></strong>
+    </div>
+    <div class="panel-body">
+        <p><%= panel.value %></p>
+        <% for (var element of panel.elements) { %>
+            <%- element.render() -%>
+        <% } %>
+    </div>
+</div>
