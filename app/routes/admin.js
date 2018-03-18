@@ -18,7 +18,7 @@ module.exports = function(app, passport, connection, notifier) {
                 users: users
             });
         }, function(error) {
-            req.flash('error', error);
+            req.flashError(error);
             res.redirect('/home');
         });
     });
@@ -28,7 +28,7 @@ module.exports = function(app, passport, connection, notifier) {
         viewModel.updateSettings(req.body.settings, function() {
             res.redirect('/admin');
         }, function(error) {
-            req.flash('error', error);
+            req.flashError(error);
             res.redirect('/admin');
         });
     });
@@ -44,7 +44,7 @@ module.exports = function(app, passport, connection, notifier) {
                 }
                 res.redirect('/admin');
             }, function(error) {
-                req.flash('error', error);
+                req.flashError(error);
                 res.redirect('/admin');
             });
         }

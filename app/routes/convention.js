@@ -20,7 +20,7 @@ module.exports = function(app, passport, connection) {
                 stages: stages,
             });
         }, function(error) {
-            req.flash('error', error);
+            req.flashError(error);
             res.redirect('/home');
         });
     });
@@ -38,7 +38,7 @@ module.exports = function(app, passport, connection) {
 
         var onSuccess = function() { res.redirect('/convention'); };
         var onFailure = function(error) {
-            req.flash('error', error);
+            req.flashError(error);
             res.redirect('/convention');
         };
 

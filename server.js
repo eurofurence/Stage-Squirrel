@@ -24,6 +24,7 @@ var url = require('url');
 
 var initAppRouting = require('./app/routes.js');
 var addBaseUrlInfoToView = require('./app/middleware/addBaseUrlInfoToView');
+var flashMessages = require('./app/middleware/flashMessages');
 var redirectHack = require('./app/middleware/redirectHack');
 
 //var configDB = require('./config/database.js');
@@ -59,16 +60,17 @@ app.use(session({ secret: sqcfg.sessionsecret })); // session secret
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 
+app.use(flash()); // use connect-flash for flash messages stored in session
+
 // Add additional middleware
 var baseUrl = url.parse(sqcfg.baseurl);
 app.use(addBaseUrlInfoToView(baseUrl));
 app.use(redirectHack());
+app.use(flashMessages());
 
 // Add static content
 app.use(express.static(__dirname + '/public'));
 app.use(baseUrl.pathname + 'favicon.ico', express.static('favicon.ico'));
-
-app.use(flash()); // use connect-flash for flash messages stored in session
 
 // routes ======================================================================
 var appRouter = express.Router();
