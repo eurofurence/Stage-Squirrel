@@ -47,9 +47,9 @@
                     <% console.log(role); %>
                     <% if (role.role_is_admin == 0 && role.role_is_manager == 0 && role.role_is_creator == 0) { %>
                         <% var glyphicon = ''; %>
-                        <% if (role.role_glyphicon != undefined) { %>
+                        <% if (role.role_glyphicon != undefined) {
                             glyphicon = '<span class="glyphicon glyphicon-' + role.role_glyphicon + '"></span> ';
-                        <% } %>
+                        } %>
                         <li <%= nav == 'role_' + role.role_title.toLowerCase() ? 'class=active' : '' %>>
                             <a href="<%= locals.baseUrlInfo.pathname %>roleview?role=<%= role.role_title.toLowerCase() %>"><%- glyphicon %><%= role.role_title %></a>
                         </li>
