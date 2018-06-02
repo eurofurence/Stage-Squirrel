@@ -9,7 +9,7 @@ module.exports = function(app, passport, connection) {
     var viewModel = new ViewModel(connection);
 
     // show the admin config
-    app.get('/convention', isLoggedIn, managerGuard, function(req, res) {
+    app.get('/convenltion', isLoggedIn, managerGuard, function(req, res) {
         viewModel.getConventionsInfo(function(activatedUsers, conventions, stages, templates) {
             res.render('convention.ejs', {
                 nav: 'convention',

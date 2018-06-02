@@ -1,11 +1,11 @@
 var util = require('util');
 
-SubFormDropDown = function(id, parentId, selected, bareOptions, renderFunc) {
+SubFormDropDown = function(id, parentId, values, bareOptions, renderFunc) {
     this.id = id;
     this.parentId = parentId;
-    this.selected = selected;
 
     this.__render = renderFunc;
+    this.__values = values;
 
     this.options = [];
     var options = (util.isArray(bareOptions) ? bareOptions : []);
@@ -14,6 +14,7 @@ SubFormDropDown = function(id, parentId, selected, bareOptions, renderFunc) {
     }
 
     this.type = SubFormDropDown.TypeId;
+    this.selected = values[0] || '';
     this.width = 0;
 };
 
@@ -23,7 +24,7 @@ SubFormDropDown.createFromElement = function(element) {
     return new SubFormDropDown(
         element.id,
         element.parentId,
-        element.value,
+        (element.value.indexOf("\r\n") > -1 ? element.value.split("\r\n") : [element.value]),
         (element.default.indexOf(';') > -1 ? element.default.split(';') : [element.default]),
         require('../../getPartialByFormElementType')(element.type, false)
     );
@@ -36,7 +37,11 @@ SubFormDropDown.prototype.addOption = function(option) {
     });
 };
 
-SubFormDropDown.prototype.render = function() {
+SubFormDropDown.prototype.render = function(index) {
+    this.selected = '';
+    if (this.__values.length > 0) {
+        this.selected = (this.__values[index] || '');
+    }
     return this.__render(this);
 };
 

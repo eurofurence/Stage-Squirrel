@@ -25,7 +25,7 @@ DropDownList.createFromElement = function(element) {
         element.id,
         element.parentId,
         element.label,
-        element.currentValue,
+        element.value,
         (element.default.indexOf(';') > -1 ? element.default.split(';') : [element.default]),
         require('../../getPartialByFormElementType')(element.type, true)
     );

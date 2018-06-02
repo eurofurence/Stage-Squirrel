@@ -32,7 +32,7 @@ RadioBoxList.createFromElement = function(element) {
         element.parentId,
         element.label,
         (element.default.indexOf(';') > -1 ? element.default.split(';') : [element.default]),
-        (element.value.indexOf(';') > -1 ? element.value.split(';') : [element.value]),
+        (element.value.indexOf("\r\n") > -1 ? element.value.split("\r\n") : [element.value]),
         require('../../getPartialByFormElementType')(element.type, true)
     );
 };

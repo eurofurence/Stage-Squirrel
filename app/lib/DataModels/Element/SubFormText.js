@@ -21,7 +21,7 @@ SubFormText.createFromElement = function(element) {
         element.id,
         element.parentId,
         element.label,
-        (element.value.indexOf(';') > -1 ? element.value.split(';') : [element.value]),
+        (element.value.indexOf("\r\n") > -1 ? element.value.split("\r\n") : [element.value]),
         (element.tags.search('multiline') > -1),
         require('../../getPartialByFormElementType')(element.type, false)
     );

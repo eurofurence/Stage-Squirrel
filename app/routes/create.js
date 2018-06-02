@@ -1,6 +1,8 @@
+var util = require('util');
+
 var creatorOrManagerGuard = require('../middleware/guard/creatorOrManager');
 var isLoggedIn = require('../middleware/isLoggedIn');
-var ViewModel = require('../ViewModels/Create');
+var ViewModel = require('../ViewModels/Survey');
 
 // =====================================
 // CREATE ==============================
@@ -9,13 +11,13 @@ module.exports = function(app, passport, connection, notifier) {
     var viewModel = new ViewModel(connection);
 
     app.get('/create', isLoggedIn, creatorOrManagerGuard, function(req, res) {
-        viewModel.getEventFormInfo(
+        viewModel.getSurveyFormData(
             req.user.currentConvention.convention_id,
             req.query.id,
             req.query.version,
-            function(elements, convention, stages, eventData, customsMap, creators) {
+            function(elements, convention, stages, eventData, creators) {
                 if (convention === undefined) {
-                    req.flash('warning', 'There is no convention ahead, for which you could create a survey.');
+                    req.flashInfo('There is no convention ahead, for which you could create a survey.');
                     res.redirect('/convention');
                     return;
                 }
@@ -23,7 +25,6 @@ module.exports = function(app, passport, connection, notifier) {
                 if (isCreationMode || eventData.creatorId === req.user.user_id || req.user.isManager) {
                     res.render('create.ejs', {
                         convention: convention,
-                        customs: customsMap,
                         creatorId: eventData.creatorId || req.user.user_id,
                         creatorsList: creators,
                         elements: elements,
@@ -36,119 +37,104 @@ module.exports = function(app, passport, connection, notifier) {
                 }
             },
             function(error) {
-                req.flash('error', error);
+                req.flashError(error);
                 res.redirect('/home');
             }
         );
     });
 
     app.post('/create', isLoggedIn, creatorOrManagerGuard, function(req, res) {
-        if (req.body.event_date === '') {
-            res.redirect('/create');
+        // No convention ahead, let's get the hell outa here!
+        var conventionId = parseInt(req.user.currentConvention.convention_id);
+        if (conventionId < 1) {
+            req.flashInfo('No convention lying ahead. You cannot add surveys for past events, though.');
+            res.redirect('/convention');
             return;
         }
-        var event_id = req.body.event_id;
-        if (typeof req.body.accept != 'undefined') {
-            var version = parseInt(req.body.version);
-            if (req.body.accept == "creator" && req.user.user_id == req.body.event_manager) {
-                notifier.notify(4, event_id, version, req.user.user_id, null);
-                connection.query("UPDATE sq_events SET event_confirmed_version_creator = ? WHERE event_id = ?", [req.body.version, event_id], function(err, state) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
+
+        var creatorId = parseInt(req.body.event_manager);
+        var surveyId = parseInt(req.body.event_id);
+        var userId = parseInt(req.user.user_id);
+        var version = Math.max(1, parseInt(req.body.version));
+
+        var isManager = req.user.isManager;
+        var isCreator = (userId == creatorId);
+
+        var onFailure = function(error) {
+            req.flashError(error);
+            var params = (surveyId > 0 ? ('?id=' + surveyId + '&version=' + version) : '');
+            res.redirect('/create' + params);
+        };
+
+        // Check, if we got a confirmation request for a survey ...
+        var acceptType = (req.body.accept || '');
+        if (surveyId > 0 && ['creator', 'manager'].indexOf(acceptType) > -1) {
+            var isForCreator = (acceptType == 'creator' && isCreator);
+            var isForManager = (acceptType == 'manager' && isManager);
+
+            if (!(isForCreator || isForManager)) {
+                res.redirect('/create?id=' + surveyId + '&version=' + version);
+                return;
             }
-            if (req.body.accept == "manager" && req.user.isManager) {
-                notifier.notify(5, event_id, version, req.user.user_id, null);
-                connection.query("UPDATE sq_events SET event_confirmed_version_manager = ? WHERE event_id = ?", [req.body.version, event_id], function(err, state) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-            }
-            res.redirect('/create?id=' + event_id + '&version=' + req.body.version);
-        } else {
-            var version = 1;
-            if (event_id == 0) {
-                connection.query("INSERT INTO sq_events (`event_id`, `convention_id`, `event_max_version`, `event_confirmed_version_manager`, `event_confirmed_version_creator`) VALUES (0, ?, 1, 0, 1)", req.user.currentConvention.convention_id, function(err, state) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        event_id = state.insertId;
-                        notifier.notify(1, event_id, 1, req.user.user_id, null);
-                        /* completely redundant start */
-                        var params = [event_id, req.body.stage_id, req.body.event_manager, req.body.event_name, req.body.event_desc, req.body.event_expl, req.body.event_type.toString().replace(',', ';'), req.body.event_date, req.body.time_pre, req.body.time_post, req.body.time_dur, version];
-                        connection.query("INSERT INTO sq_event_details (`event_id`, `stage_id`, `creator_id`, `event_title`, `event_description`, `event_explaination`, `event_categories`, `event_day`, `event_created`, `event_time_pre`, `event_time_post`, `event_time_dur`, `event_version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?)", params, function(err, state) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                for (var key in req.body) {
-                                    if (req.body.hasOwnProperty(key) &&
-                                        key.startsWith("custom")
-                                    ) {
-                                        if (req.body[key].constructor === Array) {
-                                            for (var i = 0; i < req.body[key].length; i++) {
-                                                console.log("\"INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (" + event_id + ", " + key.replace('custom', '') + ", " + version + ", " + req.body[key][i] + ")");
-                                                var params = [event_id, key.replace('custom', ''), version, req.body[key][i]];
-                                                connection.query("INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (?, ?, ?, ?)", params);
-                                            }
-                                        } else {
-                                            console.log("\"INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (" + event_id + ", " + key.replace('custom', '') + ", " + version + ", " + req.body[key] + ")");
-                                            var params = [event_id, key.replace('custom', ''), version, req.body[key]];
-                                            connection.query("INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (?, ?, ?, ?)", params);
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                        /* completely redundant end */
-                    }
-                });
-            } else {
-                version = (parseInt(req.body.version) + 1);
-                var setConfirmation = "";
-                if (req.user.isManager) {
-                    setConfirmation += ", event_confirmed_version_manager = " + version;
-                    notifier.notify(3, event_id, version, req.user.user_id, null);
+
+            // Update the respective confirmation settings and trigger the telegram bot on success
+            viewModel.updateConfirmation(surveyId, version, isForCreator, isForManager, function() {
+                if (isForCreator) {
+                    notifier.notify(4, surveyId, version, userId, null);
                 }
-                if (req.body.event_manager == req.user.user_id) {
-                    setConfirmation += ", event_confirmed_version_creator = " + version;
-                    notifier.notify(2, event_id, version, req.user.user_id, null);
+                if (isForManager) {
+                    notifier.notify(5, surveyId, version, userId, null);
                 }
-                connection.query("UPDATE sq_events SET event_max_version = ?" + setConfirmation + " WHERE event_id = ?", [version, event_id], function(err, state) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        /* completely redundant start */
-                        var params = [event_id, req.body.stage_id, req.user.user_id, req.body.event_name, req.body.event_desc, req.body.event_expl, req.body.event_type, req.body.event_date, req.body.time_pre, req.body.time_post, req.body.time_dur, version];
-                        connection.query("INSERT INTO sq_event_details (`event_id`, `stage_id`, `creator_id`, `event_title`, `event_description`, `event_explaination`, `event_categories`, `event_day`, `event_created`, `event_time_pre`, `event_time_post`, `event_time_dur`, `event_version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?)", params, function(err, state) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                for (var key in req.body) {
-                                    if (req.body.hasOwnProperty(key) &&
-                                        key.startsWith("custom")
-                                    ) {
-                                        if (req.body[key].constructor === Array) {
-                                            for (var i = 0; i < req.body[key].length; i++) {
-                                                console.log("\"INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (" + event_id + ", " + key.replace('custom', '') + ", " + version + ", " + req.body[key][i] + ")");
-                                                var params = [event_id, key.replace('custom', ''), version, req.body[key][i]];
-                                                connection.query("INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (?, ?, ?, ?)", params);
-                                            }
-                                        } else {
-                                            console.log("\"INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (" + event_id + ", " + key.replace('custom', '') + ", " + version + ", " + req.body[key] + ")");
-                                            var params = [event_id, key.replace('custom', ''), version, req.body[key]];
-                                            connection.query("INSERT INTO `sq_event_customs` (`event_id`, `custom_id`, `version`, `custom_value`) VALUES (?, ?, ?, ?)", params);
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                        /* completely redundant end */
-                    }
-                });
-            }
-            res.redirect('/home');
+                res.redirect('/create?id=' + surveyId + '&version=' + version);
+            }, onFailure);
+            return;
         }
+
+        // Get the survey form data together, custom-fields from template, first.
+        var customFields = [];
+        for (var key in req.body) {
+            if (key.startsWith('custom')) {
+                var value = req.body[key];
+                customFields.push({
+                    id: key.replace('custom', ''),
+                    value: (util.isArray(value) ? value.join("\r\n") : value),
+                });
+            }
+        }
+        var survey = {
+            conventionId: conventionId,
+            creatorId: creatorId,
+            customFields: customFields,
+            date: req.body.event_date,
+            description: req.body.event_desc,
+            duration: req.body.time_dur,
+            explanation: req.body.event_expl,
+            name: req.body.event_name,
+            stageId: parseInt(req.body.stage_id),
+            timeAfter: req.body.time_post,
+            timeBefore: req.body.time_pre,
+            type: req.body.event_type.toString().replace(',', ';'),
+        };
+
+        // Create survey, if we do not have a valid surveyId and return!
+        if (surveyId < 1) {
+            viewModel.createSurvey(survey, function(createdSurveyId) {
+                notifier.notify(1, createdSurveyId, 1, userId, null);
+                res.redirect('/create?id=' + createdSurveyId + '&version=1');
+            }, onFailure);
+            return;
+        }
+
+        // Update existing survey, if we have a valid surveyId; plus update its confirmation status, too!
+        var nextVersion = (version + 1);
+        viewModel.updateSurvey(surveyId, nextVersion, survey, isCreator, isManager, function() {
+            if (isCreator) {
+                notifier.notify(2, surveyId, nextVersion, userId, null);
+            }
+            if (isManager) {
+                notifier.notify(3, surveyId, nextVersion, userId, null);
+            }
+            res.redirect('/create?id=' + surveyId + '&version=' + nextVersion);
+        }, onFailure);
     });
 };

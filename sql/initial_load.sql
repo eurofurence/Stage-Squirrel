@@ -33,9 +33,10 @@ CREATE TABLE `sq_conventions` (
 DROP TABLE IF EXISTS `sq_event_customs`;
 CREATE TABLE `sq_event_customs` (
   `event_id` int(11) NOT NULL,
-  `custom_id` int(11) DEFAULT NULL,
-  `version` int(11) DEFAULT NULL,
-  `custom_value` varchar(1024) DEFAULT NULL
+  `custom_id` int(11) NOT NULL,
+  `version` int(11) NOT NULL,
+  `custom_value` longtext,
+  PRIMARY KEY (`event_id`,`custom_id`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -352,7 +353,7 @@ INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (26,1,24,10,3,NULL,'speaker',NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (27,1,24,10,3,NULL,NULL,NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (28,1,24,10,4,NULL,'-;No;Yes;Yes, I know what I\'m doing',NULL);
-INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (29,1,NULL,10,1,'Instruments & equipment','Do you bring any instruments, laptops, ipods or other kinds of eqipment that need to get on the PA?\n\nDo you bring any instruments, laptops, ipods or other kinds of eqipment that need to get on the PA?\n\n',NULL);
+INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (29,1,NULL,10,1,'Instruments & equipment','Do you bring any instruments, laptops, ipods or other kinds of eqipment that need to get on the PA?',NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (30,1,29,10,8,'Equipment;Connection;Make / Model;Owner (Nick)',NULL,NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (31,1,30,10,3,NULL,NULL,NULL);
 INSERT INTO `sq_form_elements` (`element_id`,`template_id`,`parent_id`,`role_id`,`element_type`,`element_label`,`element_value`,`element_tags`) VALUES (32,1,30,10,4,NULL,'-;3,5mm TRS (Stereo);3,5mm TS (Mono);6,35mm TRS (Stereo);6,35mm TS (Mono);2x 6,35mm TS (L+R);2x 6,35mm TS (L+R);Analog-XLR;AES-XLR;I don\'t know',NULL);
